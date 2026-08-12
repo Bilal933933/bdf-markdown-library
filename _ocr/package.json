@@ -1,0 +1,10 @@
+{
+  "name": "ocr-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "dependencies": {
+    "pdf-parse": "^2.4.5",
+    "sharp": "^0.33.5"
+  }
+}

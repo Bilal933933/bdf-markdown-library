@@ -1,0 +1,7 @@
+node_modules/
+_ocr/node_modules/
+_ocr/tessdata/
+*.png
+_ocr/*.txt
+_ocr/tmp-*
+_ocr/tmp*
