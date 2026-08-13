@@ -5,3 +5,4 @@ _ocr/tessdata/
 _ocr/*.txt
 _ocr/tmp-*
 _ocr/tmp*
+*.pdf
