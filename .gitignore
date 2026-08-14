@@ -6,3 +6,8 @@ _ocr/*.txt
 _ocr/tmp-*
 _ocr/tmp*
 *.pdf
+_ocr/*.log
+_ocr/test-page.mjs
+_ocr/test_page.jpg
+_ocr/pipeline_out.log
+_ocr/pipeline_err.log

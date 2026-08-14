@@ -2,11 +2,18 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import sharp from "sharp";
 
-const WASM_URL = new URL("pdfjs-dist/wasm/", import.meta.url).href;
+const WASM_URL = "E:/AI-Content/_ocr/node_modules/pdfjs-dist/wasm/";
 
 const args = process.argv.slice(2);
 const [pdfPath, outDir, startStr, endStr] = args;
-const API_KEY = process.env.GEMINI_API_KEY || "AIzaSyBZuaIlJbGexbrybmS-BziHUHrLnaY3Wbc";
+const KEYS = (process.env.GEMINI_KEYS ? process.env.GEMINI_KEYS : (process.env.GEMINI_API_KEY || ""))
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+if (KEYS.length === 0) {
+  console.error("GEMINI_KEYS أو GEMINI_API_KEY غير مضبوط. مرّره عبر البيئة.");
+  process.exit(1);
+}
 const MODEL = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
 const FALLBACK_MODELS = (process.env.GEMINI_FALLBACK || "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3.5-flash-lite,gemini-flash-latest,gemini-3.6-flash")
   .split(",")
@@ -56,12 +63,12 @@ async function ocrPage(pageNum) {
 
   const BODY_JSON = JSON.stringify(body);
 
-  async function attempt(model) {
+  async function attempt(key, model) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 90000);
     try {
       const resp = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -82,35 +89,60 @@ async function ocrPage(pageNum) {
 
   const uniqueModels = [MODEL, ...FALLBACK_MODELS.filter((m) => m !== MODEL)];
 
-  // محاولة على كل النماذج، مع انتظار قصير عند 429/503 ثم إعادة المحاولة
-  const maxTries = 12; // لكل صفحة: ~دقائق من الصبر على استنفاد الحصص
-  for (let t = 0; t < maxTries; t++) {
-    let allQuota = true;
+  // ترتيب الدوران: مفتاح1 × نماذجه، ثم مفتاح2 × نماذجه، ... (كل مفتاح وحصصه منفصلة)
+  const combos = [];
+  for (const key of KEYS) {
     for (const model of uniqueModels) {
-      let finished = false;
+      combos.push({ key, model, label: `k${KEYS.indexOf(key) + 1}/${model}` });
+    }
+  }
+
+  // حالة النماذج: نموذج محظور دائمًا (403/400) أو حصة مستنفدة مؤقتًا (429/503)
+  const banned = new Set();
+  const cooldown = new Map(); // combo -> حتى وقت ms
+
+  // محاولة على تركيبات (مفتاح × نموذج)، مع انتظار عند استنفاد كل الحصص
+  const maxTries = 20;
+  for (let t = 0; t < maxTries; t++) {
+    let anyQuota = false;
+    let triedAny = false;
+    for (const combo of combos) {
+      if (banned.has(combo.label)) continue;
+      if (cooldown.has(combo.label) && cooldown.get(combo.label) > Date.now()) {
+        anyQuota = true; // موجودة لكن في مهلة تبريد — لا نعدّها تجربة فعلية
+        continue;
+      }
+      triedAny = true;
       let text = null;
       const result = await Promise.race([
-        attempt(model)
+        attempt(combo.key, combo.model)
           .then((v) => {
-            finished = true;
             text = v;
             return "OK";
           })
           .catch((e) => {
-            finished = true;
             text = e.message;
             return e.message.includes("429") || e.message.includes("503") ? "QUOTA" : "ERR";
           }),
-        new Promise((resolve) =>
-          setTimeout(() => resolve("TIMEOUT"), 50000)
-        ),
+        new Promise((resolve) => setTimeout(() => resolve("TIMEOUT"), 50000)),
       ]);
       if (result === "OK" && text && text.trim()) return text.trim();
-      if (result !== "QUOTA") allQuota = false;
+      if (result === "QUOTA") {
+        cooldown.set(combo.label, Date.now() + 45000);
+        anyQuota = true;
+      } else if (result === "TIMEOUT") {
+        cooldown.set(combo.label, Date.now() + 30000);
+        anyQuota = true;
+      } else {
+        // RESPONSE 403/400/404 → نموذج/مفتاح محظور دائمًا لهذه الجلسة
+        if (/HTTP 4(0[0-9]|1[0-9]|04)/.test(text || "")) banned.add(combo.label);
+        else anyQuota = true;
+      }
     }
-    if (!allQuota) break; // وجدنا خطأ حقيقيًا غير استنفاد الحصص → لا نعيد المحاولة
-    // كل النماذج استنفدت حصصها → انتظر 60 ثانية وأعد
-    process.stdout.write(`⟳ كل النماذج استنفدت الحصة، انتظار 60 ثانية (محاولة ${t + 1}/${maxTries}) ... `);
+    if (banned.size === combos.length) throw new Error("كل النماذج محظورة");
+    if (!triedAny || !anyQuota) break; // كلها محظورة أو خطأ حقيقي غير حصّي → توقف
+    // كل النماذج إما في مهلة تبريد أو حصص مستنفدة → انتظر 60 ثانية وأعد
+    process.stdout.write(`⟳ كل النماذج مستنفدة أو في تبريد، انتظار 60 ثانية (محاولة ${t + 1}/${maxTries}) ... `);
     await new Promise((r) => setTimeout(r, 60000));
   }
   throw new Error("فشلت الصفحة عبر جميع النماذج أو تجاوزت المهلة");
