@@ -7,9 +7,16 @@ _ocr/tmp-*
 _ocr/tmp*
 *.pdf
 _ocr/*.log
+.env
 backend/.env
 backend/uploads/
 output/
+library/
+uploads/
 .next/
 dist/
 .DS_Store
+frontend/node_modules/
+backend/node_modules/
+.data/
+src/.data/
