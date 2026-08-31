@@ -2,7 +2,11 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import sharp from "sharp";
 
-const WASM_URL = "E:/AI-Content/_ocr/node_modules/pdfjs-dist/wasm/";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const WASM_URL = path.join(__dirname, "node_modules/pdfjs-dist/wasm/") + path.sep;
 
 const args = process.argv.slice(2);
 const [pdfPath, outDir, startStr, endStr] = args;
@@ -15,7 +19,7 @@ if (KEYS.length === 0) {
   process.exit(1);
 }
 const MODEL = process.env.GEMINI_MODEL || "gemini-3-flash-preview";
-const FALLBACK_MODELS = (process.env.GEMINI_FALLBACK || "gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3.5-flash-lite,gemini-flash-latest,gemini-3.6-flash")
+const FALLBACK_MODELS = (process.env.GEMINI_FALLBACK || "gemini-3.7-flash,gemini-3.6-flash,gemini-2.5-flash,gemini-2.5-flash-lite,gemini-3.1-flash-lite,gemini-3.1-flash-lite-preview,gemini-3.5-flash-lite,gemini-flash-latest,gemini-flash-lite-latest")
   .split(",")
   .map((s) => s.trim());
 
@@ -65,7 +69,7 @@ async function ocrPage(pageNum) {
 
   async function attempt(key, model) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 90000);
+    const timer = setTimeout(() => ctrl.abort(), 180000);
     try {
       const resp = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`,
@@ -81,7 +85,11 @@ async function ocrPage(pageNum) {
         throw new Error(`HTTP ${resp.status}: ${errText.slice(0, 200)}`);
       }
       const json = await resp.json();
-      return json?.candidates?.[0]?.content?.parts?.map((p) => p.text || "").join("") || "";
+      const cand = json?.candidates?.[0];
+      if (cand?.finishReason === "RECITATION" || cand?.finishReason === "SAFETY") {
+        return `[محتوى تعليمي محمي - ${cand.finishReason}]`;
+      }
+      return cand?.content?.parts?.map((p) => p.text || "").join("") || "";
     } finally {
       clearTimeout(timer);
     }
@@ -124,7 +132,7 @@ async function ocrPage(pageNum) {
             text = e.message;
             return e.message.includes("429") || e.message.includes("503") ? "QUOTA" : "ERR";
           }),
-        new Promise((resolve) => setTimeout(() => resolve("TIMEOUT"), 50000)),
+        new Promise((resolve) => setTimeout(() => resolve("TIMEOUT"), 150000)),
       ]);
       if (result === "OK" && text && text.trim()) return text.trim();
       if (result === "QUOTA") {

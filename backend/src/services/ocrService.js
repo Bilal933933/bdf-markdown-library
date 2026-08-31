@@ -1,6 +1,6 @@
 const fs = require('fs-extra');
 const path = require('path');
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const archiver = require('archiver');
 
 async function processPDF(filePath, originalName, onProgress) {
@@ -11,7 +11,6 @@ async function processPDF(filePath, originalName, onProgress) {
 
     onProgress(15);
 
-    // مسار سكربت gemini-ocr.mjs الموجود في المستودع الرئيسي
     const scriptPath = path.join(__dirname, '../../../_ocr/gemini-ocr.mjs');
     const apiKey = process.env.GEMINI_API_KEY;
 
@@ -21,26 +20,36 @@ async function processPDF(filePath, originalName, onProgress) {
 
     onProgress(30);
 
-    // تشغيل سكربت OCR الأصلي عبر سطر الأوامر مع تمرير مفتاح الـ API
-    const command = `node "${scriptPath}" "${filePath}" "${outputDir}"`;
-
+    // استخدام spawn لتنفيذ السكربت بأمان تام ومنع أي Command Injection
     await new Promise((resolve, reject) => {
-      exec(command, { env: { ...process.env, GEMINI_API_KEY: apiKey } }, (error, stdout, stderr) => {
-        if (error) {
-          console.error('❌ OCR Script Error:', stderr || error.message);
-          return reject(new Error(stderr || error.message));
+      const child = spawn('node', [scriptPath, filePath, outputDir], {
+        env: { ...process.env, GEMINI_API_KEY: apiKey }
+      });
+
+      let stderrData = '';
+
+      child.stderr.on('data', (data) => {
+        stderrData += data.toString();
+      });
+
+      child.on('close', (code) => {
+        if (code !== 0) {
+          console.error('❌ OCR Process Error:', stderrData);
+          return reject(new Error(stderrData || `فشل المعالجة برمز خروج ${code}`));
         }
-        resolve(stdout);
+        resolve(true);
+      });
+
+      child.on('error', (err) => {
+        reject(err);
       });
     });
 
     onProgress(80);
 
-    // ضغط مجلد النتائج (`part-XX.md`) في ملف ZIP واحد
     const zipPath = path.join(outputDir, `${bookName}_markdown.zip`);
     await createZipFromDir(outputDir, zipPath);
 
-    // تنظيف الملف المؤقت المرفوع
     if (await fs.pathExists(filePath)) {
       await fs.remove(filePath);
     }
@@ -58,7 +67,6 @@ async function processPDF(filePath, originalName, onProgress) {
   }
 }
 
-// دالة مساعدة لضغط المجلد بالكامل في ZIP
 function createZipFromDir(sourceDir, zipPath) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(zipPath);
@@ -68,7 +76,6 @@ function createZipFromDir(sourceDir, zipPath) {
     archive.on('error', reject);
 
     archive.pipe(output);
-    // إضافة جميع ملفات .md الناتجة
     archive.glob('*.md', { cwd: sourceDir });
     archive.finalize();
   });
