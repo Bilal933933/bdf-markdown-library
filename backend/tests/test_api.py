@@ -20,7 +20,8 @@ def test_health_returns_request_id() -> None:
 
     assert response.status_code == 200
     assert response.headers["X-Request-ID"]
-    assert response.json()["data"] == {"status": "ok"}
+    assert response.json()["data"]["status"] == "ok"
+    assert response.json()["data"]["db"] in ("up", "down")
     assert response.json()["meta"]["request_id"] == response.headers["X-Request-ID"]
 
 

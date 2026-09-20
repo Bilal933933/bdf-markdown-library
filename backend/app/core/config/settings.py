@@ -4,7 +4,7 @@ from functools import cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import field_validator, model_validator
+from pydantic import PostgresDsn, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from app.core.config.validators import validate_app_name, validate_runtime_safety
@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     app_name: str = "document-conversion-engine"
     app_env: AppEnvironment = "local"
     debug: bool = True
+    database_url: PostgresDsn | None = None
     log_file: Path = PROJECT_ROOT / "logs" / "app.log"
     log_max_bytes: int = 10_485_760
     log_backup_count: int = 5
