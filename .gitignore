@@ -9,6 +9,7 @@ _ocr/tmp*
 _ocr/*.log
 .env
 backend/.env
+logs/
 backend/uploads/
 output/
 library/
@@ -20,3 +21,13 @@ frontend/node_modules/
 backend/node_modules/
 .data/
 src/.data/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/

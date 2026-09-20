@@ -27,6 +27,17 @@
 - Node.js
 - Tesseract.js (مع خط `ara_best` للعربية)
 - pdfjs-dist
+- Python 3.12 و[uv](https://docs.astral.sh/uv/)
+
+## التحقق من الباك
+
+من جذر المشروع شغّل:
+
+```powershell
+.\validate.ps1
+```
+
+يقوم الأمر بتثبيت الاعتماديات من `backend/uv.lock` ثم يشغّل الاختبارات، وفحص Ruff، وفحص الأنواع عبر mypy.
 
 ## الكتب المعالجة
 
