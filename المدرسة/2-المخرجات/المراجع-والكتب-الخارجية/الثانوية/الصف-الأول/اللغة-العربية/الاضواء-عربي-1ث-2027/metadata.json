@@ -1,0 +1,76 @@
+{
+  "id": "-------------1--2027",
+  "title": "الاضواء_عربي_1ث_2027",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "sec",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 314,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        120
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        121,
+        160
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-05.md",
+      "pages": [
+        161,
+        200
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-06.md",
+      "pages": [
+        201,
+        240
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-07.md",
+      "pages": [
+        241,
+        280
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-08.md",
+      "pages": [
+        281,
+        314
+      ],
+      "sections": []
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+{
+  "id": "-----3--------------",
+  "title": "عربي_3ع_كتاب_الوزارة",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "prep",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 155,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        120
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        121,
+        155
+      ],
+      "sections": []
+    }
+  ]
+}

@@ -1,0 +1,203 @@
+{
+  "id": "dirasat-saff-thalith-iadaei-2027-t1",
+  "title": "دراسات الصف الثالث الإعدادي 2027 ترم أول",
+  "fullTitle": "الدراسات الاجتماعية: مصر وقارات العالم الجديد — الصف الثالث الإعدادي — الفصل الدراسي الأول",
+  "subject": "الدراسات الاجتماعية",
+  "branch": "دراسات اجتماعية",
+  "level": "الصف الثالث الإعدادي",
+  "term": "الفصل الدراسي الأول",
+  "academicYear": "2026-2027",
+  "publisher": "سلاح التلميذ — مؤسسة سلاح التلميذ للطبع والنشر",
+  "author": "إدارة المحتوى التعليمي — شركة سلاح التلميذ للطبع والنشر",
+  "supervisor": "د. جبريل أنور حميدة — رئيس الإدارة المركزية لتطوير المناهج",
+  "copyright": "وزارة التربية والتعليم والتعليم الفني — جمهورية مصر العربية",
+  "extraction": {
+    "method": "OCR — Gemini Vision",
+    "tool": "gemini-ocr.mjs",
+    "date": "2026-08-16",
+    "model": "gemini-3-flash-preview",
+    "totalPages": 112,
+    "totalParts": 3,
+    "failedPages": 0,
+    "shortPages": 0,
+    "controlChars": 0,
+    "quality": "ممتاز"
+  },
+  "structure": {
+    "totalPages": 112,
+    "parts": [
+      {
+        "file": "part-01.md",
+        "pages": "1-40",
+        "sizeKB": 100,
+        "pageCount": 40
+      },
+      {
+        "file": "part-02.md",
+        "pages": "41-80",
+        "sizeKB": 104,
+        "pageCount": 40
+      },
+      {
+        "file": "part-03.md",
+        "pages": "81-112",
+        "sizeKB": 82,
+        "pageCount": 32
+      }
+    ]
+  },
+  "contents": [
+    {
+      "type": "frontmatter",
+      "title": "الغلاف والهداية",
+      "fromPage": 1,
+      "toPage": 1
+    },
+    {
+      "type": "frontmatter",
+      "title": "صفحة التأليف والمراجعة",
+      "fromPage": 2,
+      "toPage": 2
+    },
+    {
+      "type": "frontmatter",
+      "title": "المقدمة",
+      "fromPage": 3,
+      "toPage": 3
+    },
+    {
+      "type": "toc",
+      "title": "المحتويات",
+      "fromPage": 4,
+      "toPage": 5
+    },
+    {
+      "type": "curriculum",
+      "title": "خريطة المنهج",
+      "fromPage": 6,
+      "toPage": 9
+    },
+    {
+      "type": "unit",
+      "number": 1,
+      "title": "الملامح الطبيعية والحضارية لقارات العالم الجديد",
+      "fromPage": 10,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "موقع ومظاهر سطح قارات العالم الجديد",
+          "fromPage": 10
+        },
+        {
+          "number": 2,
+          "title": "الحضارات القديمة في الأمريكتين",
+          "fromPage": 20
+        },
+        {
+          "number": 3,
+          "title": "الكشوف الجغرافية لقارات العالم الجديد",
+          "fromPage": 26
+        }
+      ],
+      "evaluation": {
+        "title": "تقييم ختامي على الوحدة الأولى",
+        "fromPage": 34
+      }
+    },
+    {
+      "type": "unit",
+      "number": 2,
+      "title": "مصر في عصر «محمد علي» وخلفائه",
+      "fromPage": 38,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "تولية «محمد علي» حكم مصر وتثبيت دعائم حكمه",
+          "fromPage": 38
+        },
+        {
+          "number": 2,
+          "title": "«محمد علي» وبناء الدولة الحديثة في مصر",
+          "fromPage": 44
+        },
+        {
+          "number": 3,
+          "title": "مصر في عصر خلفاء «محمد علي»",
+          "fromPage": 52
+        }
+      ],
+      "evaluation": {
+        "title": "تقييم ختامي على الوحدة الثانية",
+        "fromPage": 60
+      }
+    },
+    {
+      "type": "unit",
+      "number": 3,
+      "title": "النُّظُم البيئية في قارات العالم الجديد",
+      "fromPage": 64,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "نُظُم الغابات والحشائش في قارات العالم الجديد",
+          "fromPage": 64
+        },
+        {
+          "number": 2,
+          "title": "النُّظُم البيئية الصحراوية والمائية في قارات العالم الجديد",
+          "fromPage": 72
+        },
+        {
+          "number": 3,
+          "title": "التغير المناخي وتأثيره على النُّظُم البيئية",
+          "fromPage": 80
+        }
+      ],
+      "evaluation": {
+        "title": "تقييم ختامي على الوحدة الثالثة",
+        "fromPage": 88
+      }
+    },
+    {
+      "type": "unit",
+      "number": 4,
+      "title": "الحركة الوطنية في مواجهة الاحتلال البريطاني",
+      "fromPage": 92,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "الثورة العرابية وبداية الاحتلال البريطاني لمصر",
+          "fromPage": 92
+        },
+        {
+          "number": 2,
+          "title": "كفاح الحركة الوطنية وبناء الوعي الوطني (مصطفى كامل ومحمد فريد)",
+          "fromPage": 100
+        }
+      ],
+      "evaluation": {
+        "title": "تقييم ختامي على الوحدة الرابعة",
+        "fromPage": 106
+      }
+    },
+    {
+      "type": "review",
+      "title": "المراجعة العامة على الفصل الدراسي الأول",
+      "fromPage": 108,
+      "toPage": 111
+    },
+    {
+      "type": "backmatter",
+      "title": "الغلاف الخلفي — بيانات النشر",
+      "fromPage": 112,
+      "toPage": 112
+    }
+  ],
+  "metadata": {
+    "bookDimensions": "١٩×٢٧ سم",
+    "paperType": "ورق المتن: ٧٠ جرام — ورق الغلاف: ١٨٠ جرام",
+    "colors": "٤ ألوان",
+    "coverPages": 116,
+    "editionYear": "2026-2027"
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "id": "----------------",
+  "title": "كيف_تتقن_البلاغة",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "general",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 528,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        120
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        121,
+        160
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-05.md",
+      "pages": [
+        161,
+        200
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-06.md",
+      "pages": [
+        201,
+        240
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-07.md",
+      "pages": [
+        241,
+        280
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-08.md",
+      "pages": [
+        281,
+        320
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-09.md",
+      "pages": [
+        321,
+        360
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-10.md",
+      "pages": [
+        361,
+        400
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-11.md",
+      "pages": [
+        401,
+        440
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-12.md",
+      "pages": [
+        441,
+        480
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-13.md",
+      "pages": [
+        481,
+        520
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-14.md",
+      "pages": [
+        521,
+        528
+      ],
+      "sections": []
+    }
+  ]
+}

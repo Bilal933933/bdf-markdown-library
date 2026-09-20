@@ -1,0 +1,167 @@
+{
+  "id": "math-saff-thalith-iadaei-2027-t1",
+  "title": "كتاب الرياضيات للصف الثالث الإعدادي 2027 ترم أول",
+  "fullTitle": "رياضيات الصف الثالث الإعدادي — الفصل الدراسي الأول — منهج جديد",
+  "subject": "الرياضيات",
+  "branch": "رياضيات",
+  "level": "الصف الثالث الإعدادي",
+  "term": "الفصل الدراسي الأول",
+  "academicYear": "2026-2027",
+  "copyright": "وزارة التربية والتعليم والتعليم الفني — جمهورية مصر العربية",
+  "extraction": {
+    "method": "OCR — Gemini Vision",
+    "tool": "gemini-ocr.mjs",
+    "date": "2026-08-16",
+    "totalPages": 112,
+    "totalParts": 3,
+    "failedPages": 0,
+    "quality": "ممتاز"
+  },
+  "structure": {
+    "totalPages": 112,
+    "parts": [
+      {
+        "file": "part-01.md",
+        "pages": "1-40",
+        "pageCount": 40
+      },
+      {
+        "file": "part-02.md",
+        "pages": "41-80",
+        "pageCount": 40
+      },
+      {
+        "file": "part-03.md",
+        "pages": "81-112",
+        "pageCount": 32
+      }
+    ]
+  },
+  "contents": [
+    {
+      "type": "frontmatter",
+      "title": "الغلاف والتقديم",
+      "fromPage": 1,
+      "toPage": 3
+    },
+    {
+      "type": "toc",
+      "title": "محتويات الكتاب",
+      "fromPage": 4,
+      "toPage": 4
+    },
+    {
+      "type": "unit",
+      "number": 1,
+      "title": "الأعداد والعمليات عليها",
+      "fromPage": 5,
+      "lessons": [
+        {
+          "number": "1-1",
+          "title": "قوى القوى",
+          "fromPage": 2
+        },
+        {
+          "number": "1-2",
+          "title": "المعادلات الأسية",
+          "fromPage": 7
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 2,
+      "title": "الجبر",
+      "fromPage": 14,
+      "lessons": [
+        {
+          "number": "2-1",
+          "title": "الدالة التربيعية",
+          "fromPage": 14
+        },
+        {
+          "number": "2-2",
+          "title": "مجموعة الأصفار الحقيقية لدوال كثيرات الحدود",
+          "fromPage": 22
+        },
+        {
+          "number": "2-3",
+          "title": "دوال الكسور الجبرية النسبية",
+          "fromPage": 27
+        },
+        {
+          "number": "2-4",
+          "title": "المجال المشترك وتساوى دوال الكسور الجبرية النسبية",
+          "fromPage": 33
+        },
+        {
+          "number": "2-5",
+          "title": "العمليات على الكسور الجبرية النسبية",
+          "fromPage": 38
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 3,
+      "title": "الهندسة",
+      "fromPage": 48,
+      "lessons": [
+        {
+          "number": "3-1",
+          "title": "تشابه المضلعات",
+          "fromPage": 48
+        },
+        {
+          "number": "3-2",
+          "title": "تشابه المثلثات",
+          "fromPage": 55
+        },
+        {
+          "number": "3-3",
+          "title": "التمدد",
+          "fromPage": 62
+        },
+        {
+          "number": "3-4",
+          "title": "النسب المثلثية للزاوية الحادة",
+          "fromPage": 68
+        },
+        {
+          "number": "3-5",
+          "title": "النسب المثلثية لبعض الزوايا الخاصة",
+          "fromPage": 74
+        },
+        {
+          "number": "3-6",
+          "title": "العلاقة بين ميلى المستقيمين المتوازيين والمتعامدين",
+          "fromPage": 80
+        },
+        {
+          "number": "3-7",
+          "title": "معادلة الخط المستقيم",
+          "fromPage": 86
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 4,
+      "title": "الإحصاء",
+      "fromPage": 96,
+      "lessons": [
+        {
+          "number": "4-1",
+          "title": "مقاييس التشتت",
+          "fromPage": 96
+        }
+      ]
+    },
+    {
+      "type": "backmatter",
+      "title": "التمارين العامة والتقييمات",
+      "fromPage": 97,
+      "toPage": 112
+    }
+  ]
+}

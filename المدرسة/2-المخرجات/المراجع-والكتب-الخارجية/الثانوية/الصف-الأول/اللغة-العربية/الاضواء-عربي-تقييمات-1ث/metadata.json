@@ -1,0 +1,28 @@
+{
+  "id": "---------------------1-",
+  "title": "الاضواء_عربي_تقييمات_1ث",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "sec",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 50,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        50
+      ],
+      "sections": []
+    }
+  ]
+}

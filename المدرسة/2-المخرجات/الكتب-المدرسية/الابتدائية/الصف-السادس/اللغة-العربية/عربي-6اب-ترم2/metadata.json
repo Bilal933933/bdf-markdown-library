@@ -1,0 +1,44 @@
+{
+  "id": "-----6------2",
+  "title": "عربي_6اب_ترم2",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "primary",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 144,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        120
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        121,
+        144
+      ],
+      "sections": []
+    }
+  ]
+}

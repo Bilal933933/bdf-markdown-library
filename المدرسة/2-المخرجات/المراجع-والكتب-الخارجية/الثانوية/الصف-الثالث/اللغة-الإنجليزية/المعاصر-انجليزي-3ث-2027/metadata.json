@@ -1,0 +1,92 @@
+{
+  "id": "المعاصر_انجليزي_3ث_2027",
+  "title": "المعاصر_انجليزي_3ث_2027",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "sec",
+  "subject": "الإنجليزية",
+  "branch": "مراجعة",
+  "total_pages": 396,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        71
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        72,
+        94
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        95,
+        134
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-05.md",
+      "pages": [
+        135,
+        174
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-06.md",
+      "pages": [
+        175,
+        214
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-07.md",
+      "pages": [
+        215,
+        254
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-08.md",
+      "pages": [
+        255,
+        294
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-09.md",
+      "pages": [
+        295,
+        334
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-10.md",
+      "pages": [
+        335,
+        370
+      ],
+      "sections": []
+    }
+  ]
+}

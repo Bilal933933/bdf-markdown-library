@@ -1,0 +1,52 @@
+{
+  "id": "--------------------1-",
+  "title": "الاضواء_عربي_مراجعة_1ث",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "sec",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 162,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        120
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-04.md",
+      "pages": [
+        121,
+        160
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-05.md",
+      "pages": [
+        161,
+        162
+      ],
+      "sections": []
+    }
+  ]
+}

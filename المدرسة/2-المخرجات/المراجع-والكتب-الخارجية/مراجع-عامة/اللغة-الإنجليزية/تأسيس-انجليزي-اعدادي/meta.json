@@ -1,0 +1,75 @@
+{
+  "id": "professional-english-preparatory",
+  "title": "كتاب بروفيشنال في تأسيس ومهارات اللغة الانجليزية للمرحلة الاعدادية",
+  "fullTitle": "بروفيشنال في تأسيس ومهارات اللغة الانجليزية للمرحلة الاعدادية PDF",
+  "subject": "اللغة الإنجليزية",
+  "branch": "تأسيس ومهارات",
+  "level": "المرحلة الإعدادية",
+  "extraction": {
+    "method": "OCR — Gemini Vision",
+    "tool": "gemini-ocr.mjs",
+    "date": "2026-08-16",
+    "totalPages": 96,
+    "totalParts": 3,
+    "failedPages": 0,
+    "quality": "ممتاز"
+  },
+  "structure": {
+    "totalPages": 96,
+    "parts": [
+      {
+        "file": "part-01.md",
+        "pages": "1-40",
+        "pageCount": 40
+      },
+      {
+        "file": "part-02.md",
+        "pages": "41-80",
+        "pageCount": 40
+      },
+      {
+        "file": "part-03.md",
+        "pages": "81-96",
+        "pageCount": 16
+      }
+    ]
+  },
+  "contents": [
+    {
+      "type": "chapter",
+      "title": "English Course for Preparatory Stage (Grammar, Reading, Paragraphs)",
+      "fromPage": 1,
+      "toPage": 82
+    },
+    {
+      "type": "vocabulary",
+      "title": "Vocabulary & English Terms (Family, Food, Jobs, Places)",
+      "fromPage": 83,
+      "toPage": 85
+    },
+    {
+      "type": "grammar",
+      "title": "Prepositions and Expressions",
+      "fromPage": 86,
+      "toPage": 88
+    },
+    {
+      "type": "verbs",
+      "title": "Conjugation of Irregular Verbs",
+      "fromPage": 89,
+      "toPage": 91
+    },
+    {
+      "type": "adjectives",
+      "title": "Adjectives and Opposites",
+      "fromPage": 91,
+      "toPage": 92
+    },
+    {
+      "type": "vocabulary",
+      "title": "Other Important English Words & Glossary",
+      "fromPage": 92,
+      "toPage": 96
+    }
+  ]
+}

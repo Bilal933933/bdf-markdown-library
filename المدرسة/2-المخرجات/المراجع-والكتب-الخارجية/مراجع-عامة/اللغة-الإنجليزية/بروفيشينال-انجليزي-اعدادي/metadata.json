@@ -1,0 +1,36 @@
+{
+  "id": "-------------------------",
+  "title": "بروفيشينال_انجليزي_اعدادي",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "general",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 96,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        96
+      ],
+      "sections": []
+    }
+  ]
+}

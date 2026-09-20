@@ -1,0 +1,36 @@
+{
+  "id": "-------3--2027",
+  "title": "دراسات_3ع_2027",
+  "author": "غير محدد",
+  "publisher": "غير محدد",
+  "stage": "prep",
+  "subject": "عام",
+  "branch": "مراجعة",
+  "total_pages": 112,
+  "parts": [
+    {
+      "file": "part-01.md",
+      "pages": [
+        1,
+        40
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-02.md",
+      "pages": [
+        41,
+        80
+      ],
+      "sections": []
+    },
+    {
+      "file": "part-03.md",
+      "pages": [
+        81,
+        112
+      ],
+      "sections": []
+    }
+  ]
+}

@@ -1,0 +1,142 @@
+{
+  "id": "science-saff-thalith-iadaei-2027-t1",
+  "title": "علوم الصف الثالث الاعدادي ٢٠٢٧ ترم اول",
+  "fullTitle": "كتاب العلوم والتعلم والتقصي — الصف الثالث الإعدادي — الفصل الدراسي الأول",
+  "subject": "العلوم",
+  "branch": "علوم",
+  "level": "الصف الثالث الإعدادي",
+  "term": "الفصل الدراسي الأول",
+  "academicYear": "2026-2027",
+  "copyright": "وزارة التربية والتعليم والتعليم الفني — جمهورية مصر العربية",
+  "extraction": {
+    "method": "OCR — Gemini Vision",
+    "tool": "gemini-ocr.mjs",
+    "date": "2026-08-16",
+    "totalPages": 109,
+    "totalParts": 3,
+    "failedPages": 0,
+    "quality": "ممتاز"
+  },
+  "structure": {
+    "totalPages": 109,
+    "parts": [
+      {
+        "file": "part-01.md",
+        "pages": "1-40",
+        "pageCount": 40
+      },
+      {
+        "file": "part-02.md",
+        "pages": "41-80",
+        "pageCount": 40
+      },
+      {
+        "file": "part-03.md",
+        "pages": "81-109",
+        "pageCount": 29
+      }
+    ]
+  },
+  "contents": [
+    {
+      "type": "frontmatter",
+      "title": "بيانات الطالب والغلاف الداخلي والمقدمة",
+      "fromPage": 1,
+      "toPage": 3
+    },
+    {
+      "type": "toc",
+      "title": "المحتويات",
+      "fromPage": 4,
+      "toPage": 5
+    },
+    {
+      "type": "unit",
+      "number": 1,
+      "title": "التفاعلات الكيميائية وآثارها البيئية",
+      "fromPage": 6,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "أنواع التفاعلات الكيميائية",
+          "fromPage": 6
+        },
+        {
+          "number": 2,
+          "title": "تفاعلات الاحتراق والتلوث البيئي",
+          "fromPage": 15
+        },
+        {
+          "number": 3,
+          "title": "التدخين ومخاطره",
+          "fromPage": 25
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 2,
+      "title": "الكهربية والمغناطيسية",
+      "fromPage": 35,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "التيار الكهربي",
+          "fromPage": 35
+        },
+        {
+          "number": 2,
+          "title": "الدوائر الكهربية",
+          "fromPage": 46
+        },
+        {
+          "number": 3,
+          "title": "القوى الكهربية والمغناطيسية",
+          "fromPage": 54
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 3,
+      "title": "الوراثة وتنوع الصفات",
+      "fromPage": 65,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "الوراثة وتنوع الصفات",
+          "fromPage": 65
+        },
+        {
+          "number": 2,
+          "title": "الانتخاب الطبيعي والانتخاب الصناعي",
+          "fromPage": 75
+        }
+      ]
+    },
+    {
+      "type": "unit",
+      "number": 4,
+      "title": "تاريخ كوكب الأرض",
+      "fromPage": 85,
+      "lessons": [
+        {
+          "number": 1,
+          "title": "السجل الحفري",
+          "fromPage": 85
+        },
+        {
+          "number": 2,
+          "title": "الأزمنة الجيولوجية وتنوع الصفات في الكائنات الحية",
+          "fromPage": 95
+        }
+      ]
+    },
+    {
+      "type": "backmatter",
+      "title": "الملحقات والغلاف الخلفي",
+      "fromPage": 105,
+      "toPage": 109
+    }
+  ]
+}
