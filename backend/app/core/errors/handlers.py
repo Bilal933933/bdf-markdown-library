@@ -9,12 +9,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.api.envelopes import ErrorBody, ErrorEnvelope
 from app.core.config import get_settings
 from app.core.errors.codes import ErrorCode
 from app.core.errors.exceptions import AppError
 from app.core.logging import get_request_id
 from app.core.validation import format_validation_errors
-from app.schemas.errors import ErrorBody, ErrorEnvelope
 
 logger = logging.getLogger(__name__)
 VALIDATION_ERROR_MESSAGE = "Validation failed"

@@ -4,7 +4,7 @@ import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 const WASM_URL = "E:/AI-Content/_ocr/node_modules/pdfjs-dist/wasm/";
 const pdfPath = process.argv[2];
 const pageNum = parseInt(process.argv[3] || "1");
-const API_KEY = process.env.GEMINI_API_KEY || "AIzaSyBZuaIlJbGexbrybmS-BziHUHrLnaY3Wbc";
+const API_KEY = process.env.GEMINI_API_KEY ?? "YOUR_KEY_HERE";
 
 const buf = readFileSync(pdfPath);
 const data = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);

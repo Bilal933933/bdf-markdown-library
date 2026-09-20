@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter
 
+from app.api.envelopes import Meta, SuccessEnvelope
 from app.core.logging import get_request_id
-from app.schemas.common import Meta, SuccessEnvelope
 
 router = APIRouter()
 
