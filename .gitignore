@@ -11,6 +11,7 @@ _ocr/*.log
 backend/.env
 logs/
 backend/uploads/
+storage/
 output/
 library/
 uploads/
