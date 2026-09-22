@@ -23,8 +23,8 @@ def test_engine_requires_configured_url() -> None:
         get_engine(Settings(database_url=None))
 
 
-def test_base_has_no_tables_yet() -> None:
-    assert Base.metadata.tables == {}
+def test_expected_tables_registered() -> None:
+    assert {"conversions", "page_checkpoints"} <= set(Base.metadata.tables)
 
 
 def test_db_session_runs_and_closes() -> None:

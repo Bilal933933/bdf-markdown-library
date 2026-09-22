@@ -11,7 +11,8 @@ _ocr/*.log
 backend/.env
 logs/
 backend/uploads/
-storage/
+# data dir only (root-anchored so app/infrastructure/storage/ sources stay tracked)
+/storage/
 output/
 library/
 uploads/

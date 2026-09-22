@@ -24,6 +24,7 @@ from app.domains.conversion.models import (
     Cell,
     ExtractionMethod,
     HeadingPayload,
+    ImagePayload,
     ParagraphPayload,
     Row,
     TablePayload,
@@ -124,6 +125,26 @@ def _extract_tables(pdf_bytes: bytes, page_number: int) -> list[dict]:
     return tables
 
 
+def _collect_images(pdf_page: pymupdf.Page, page_no: int) -> list[tuple[tuple[float, float], dict]]:
+    """One item per embedded image, keyed by reading position (detection only)."""
+    items: list[tuple[tuple[float, float], dict]] = []
+    for index, info in enumerate(pdf_page.get_images(full=True)):
+        try:
+            rect = pdf_page.get_image_bbox(info)
+        except ValueError:
+            continue
+        if rect.is_empty or rect.is_infinite:
+            continue
+        bbox = (rect.x0, rect.y0, rect.x1, rect.y1)
+        items.append(
+            (
+                (rect.y0, rect.x0),
+                {"kind": "image", "asset_id": f"p{page_no}-img{index}", "bbox": bbox},
+            )
+        )
+    return items
+
+
 def _line_in_table(line: dict, tables: list[dict]) -> bool:
     x0, y0, x1, y1 = line["bbox"]
     cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
@@ -186,6 +207,7 @@ def detect_blocks(
     for table in tables:
         tx0, ty0, tx1, ty1 = table["bbox"]
         items.append(((ty0, tx0), {"kind": "table", "rows": table["rows"], "bbox": table["bbox"]}))
+    items.extend(_collect_images(pdf_page, page_no))
 
     items.sort(key=lambda item: (item[0][0], item[0][1]))
 
@@ -206,6 +228,9 @@ def detect_blocks(
         elif item["kind"] == "table":
             payload = TablePayload(rows=item["rows"])
             block_type = BlockType.TABLE
+        elif item["kind"] == "image":
+            payload = ImagePayload(asset_id=item["asset_id"])
+            block_type = BlockType.IMAGE
         else:
             payload = ParagraphPayload(text=item["text"])
             block_type = BlockType.PARAGRAPH

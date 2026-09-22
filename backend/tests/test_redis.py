@@ -22,7 +22,7 @@ def test_client_requires_configured_url() -> None:
 
 
 def test_ping_false_when_server_down() -> None:
-    settings = Settings(redis_url="redis://127.0.0.1:6379")
+    settings = Settings(redis_url="redis://127.0.0.1:6399")
     reset_redis()
     try:
         assert ping(settings) is False

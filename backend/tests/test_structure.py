@@ -69,3 +69,22 @@ def test_without_pdf_bytes_skips_tables() -> None:
     blocks = detect_blocks(page)
 
     assert BlockType.TABLE not in [block.type for block in blocks]
+
+
+def test_embedded_image_becomes_image_block() -> None:
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_font(fontname="arr", fontfile="C:/Windows/Fonts/arial.ttf")
+    page.insert_text((72, 72), "نص قبل الصورة", fontname="arr", fontsize=12)
+    image = page.get_pixmap(matrix=pymupdf.Matrix(2, 2)).tobytes("png")
+    page.insert_image(pymupdf.Rect(72, 200, 300, 400), stream=image)
+    pdf_bytes = doc.tobytes()
+    pdf = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+
+    blocks = detect_blocks(pdf[0], pdf_bytes, source_file="test.pdf")
+    images = [block for block in blocks if block.type == BlockType.IMAGE]
+    assert len(images) == 1
+    assert images[0].payload.asset_id == "p1-img0"
+    assert images[0].source.bbox is not None
+    assert images[0].source.method == ExtractionMethod.PYMUPDF
+    assert blocks[-1].type == BlockType.IMAGE

@@ -19,7 +19,11 @@ def get_redis(settings: Settings | None = None) -> redis.Redis:
     resolved = settings or get_settings()
     if resolved.redis_url is None:
         raise ValueError("REDIS_URL is not configured")
-    _client = redis.Redis.from_url(str(resolved.redis_url), socket_connect_timeout=3)
+    _client = redis.Redis.from_url(
+        str(resolved.redis_url),
+        socket_connect_timeout=3,
+        protocol=2,  # local Windows port is Redis 5 (no RESP3 HELLO)
+    )
     return _client
 
 

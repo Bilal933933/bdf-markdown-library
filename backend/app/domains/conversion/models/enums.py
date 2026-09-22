@@ -33,6 +33,7 @@ class ConversionStatus(StrEnum):
     PROCESSING = "processing"
     COMPLETED = "completed"
     FAILED = "failed"
+    PARTIAL = "partial"
 
 
 class CheckpointStatus(StrEnum):

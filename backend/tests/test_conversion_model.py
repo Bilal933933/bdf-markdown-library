@@ -23,6 +23,11 @@ def test_legal_transitions() -> None:
     conv = conv.transition_to(ConversionStatus.FAILED)
     conv = conv.transition_to(ConversionStatus.QUEUED)
     assert conv.status == ConversionStatus.QUEUED
+    orphan = Conversion(id="c2", source_file="b.pdf", status=ConversionStatus.PROCESSING)
+    assert orphan.transition_to(ConversionStatus.QUEUED).status == ConversionStatus.QUEUED
+    partial = Conversion(id="c3", source_file="b.pdf", status=ConversionStatus.PROCESSING)
+    partial = partial.transition_to(ConversionStatus.PARTIAL)
+    assert partial.transition_to(ConversionStatus.QUEUED).status == ConversionStatus.QUEUED
 
 
 def test_illegal_transitions_are_rejected() -> None:
@@ -32,6 +37,8 @@ def test_illegal_transitions_are_rejected() -> None:
     done = Conversion(id="c2", source_file="b.pdf", status=ConversionStatus.COMPLETED)
     with pytest.raises(ValueError, match="illegal transition"):
         done.transition_to(ConversionStatus.PROCESSING)
+    with pytest.raises(ValueError, match="illegal transition"):
+        done.transition_to(ConversionStatus.PARTIAL)
 
 
 def test_current_page_bounded_by_total() -> None:

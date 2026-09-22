@@ -10,8 +10,14 @@ from app.domains.conversion.models.enums import ConversionStatus
 
 _ALLOWED_TRANSITIONS: dict[ConversionStatus, set[ConversionStatus]] = {
     ConversionStatus.QUEUED: {ConversionStatus.PROCESSING},
-    ConversionStatus.PROCESSING: {ConversionStatus.COMPLETED, ConversionStatus.FAILED},
+    ConversionStatus.PROCESSING: {
+        ConversionStatus.COMPLETED,
+        ConversionStatus.FAILED,
+        ConversionStatus.QUEUED,  # orphan recovery on worker startup (§27)
+        ConversionStatus.PARTIAL,
+    },
     ConversionStatus.FAILED: {ConversionStatus.QUEUED},
+    ConversionStatus.PARTIAL: {ConversionStatus.QUEUED},
     ConversionStatus.COMPLETED: set(),
 }
 
