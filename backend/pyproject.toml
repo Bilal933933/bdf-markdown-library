@@ -22,6 +22,7 @@ dependencies = [
     "rq>=1.16",
     "structlog>=25.4",
     "python-multipart>=0.0.18",
+    "camel-tools>=1.6",
 ]
 
 [dependency-groups]

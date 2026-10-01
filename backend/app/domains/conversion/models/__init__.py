@@ -1,5 +1,6 @@
 """Document Model schemas — one file per model; this package is the public API."""
 
+from app.domains.conversion.models.artifact import OutputArtifact
 from app.domains.conversion.models.asset import Asset
 from app.domains.conversion.models.block import Block, BlockPayload
 from app.domains.conversion.models.cell import Cell
@@ -48,6 +49,7 @@ __all__ = [
     "DocumentMetadata",
     "ExtractionInfo",
     "ExtractionMethod",
+    "OutputArtifact",
     "HeadingPayload",
     "ImagePayload",
     "Lesson",

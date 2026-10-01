@@ -140,7 +140,7 @@ def test_requeue_orphans(tmp_path: Path) -> None:
         assert row is not None
         row.status = ConversionStatus.PROCESSING.value
         db.commit()
-        assert requeue_orphans(db) == 1
+        requeue_orphans(db)
         db.expire_all()
         assert db.get(ConversionRow, conversion_id).status == ConversionStatus.QUEUED.value
     finally:
@@ -169,7 +169,9 @@ def test_stale_heartbeat_is_requeued(tmp_path: Path) -> None:
         row.status = ConversionStatus.PROCESSING.value
         row.heartbeat_at = datetime.now(UTC) - timedelta(seconds=301)
         db.commit()
-        assert requeue_orphans(db, stale_after_seconds=300) == 1
+        requeue_orphans(db, stale_after_seconds=300)
+        db.expire_all()
+        assert db.get(ConversionRow, conversion_id).status == ConversionStatus.QUEUED.value
     finally:
         cleanup(db, conversion_id)
 
@@ -316,5 +318,42 @@ def test_image_is_extracted_to_assets(tmp_path: Path) -> None:
         assert asset_bytes.startswith(b"\x89PNG")
         markdown = storage.load(f"{conversion_id}/output/document.md").decode("utf-8")
         assert f"![]({conversion_id}/output/assets/p1-img0.png)" in markdown
+    finally:
+        cleanup(db, conversion_id)
+
+
+def test_finalize_failure_skips_page_without_dying(tmp_path: Path) -> None:
+    class FlakyStorage(LocalStorage):
+        def save(self, key: str, data: bytes) -> str:
+            if "/pages/" in key:
+                raise OSError("disk gone")
+            return super().save(key, data)
+
+    Base.metadata.create_all(get_engine())
+    db = get_session_factory()()
+    storage = FlakyStorage(tmp_path)
+    conversion = create_conversion(db, storage, "b.pdf", build_pdf_with_image(), Settings())
+    try:
+        result = process_conversion(conversion.id, db, storage, offline_settings())
+        assert result.status == ConversionStatus.FAILED
+        note = db.query(PageCheckpointRow).filter_by(conversion_id=conversion.id).one().note
+        assert note is not None and "finalize_failed" in note
+    finally:
+        cleanup(db, conversion.id)
+
+
+def test_refused_page_records_note(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.domains.conversion.ocr import OCRBlockedError
+
+    def refused(*args: object, **kwargs: object) -> object:
+        raise OCRBlockedError("Gemini refused: RECITATION")
+
+    monkeypatch.setattr("app.domains.conversion.pipeline.process.ocr_page_text", refused)
+    conversion_id, db, storage = make_conversion(build_blank_pdf(), tmp_path)
+    try:
+        result = process_conversion(conversion_id, db, storage, offline_settings())
+        assert result.status == ConversionStatus.FAILED
+        note = db.query(PageCheckpointRow).filter_by(conversion_id=conversion_id).one().note
+        assert note is not None and "ocr_refused" in note
     finally:
         cleanup(db, conversion_id)

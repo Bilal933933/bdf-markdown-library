@@ -1,7 +1,8 @@
 """Conversion — root aggregate of the conversion domain.
 
 Required: id, source_file. Optional: status (queued), progress (0),
-total_pages (0), current_page (0), error.
+total_pages (0), current_page (0), error, source_key, source_sha256,
+source_size (0), source_mime.
 """
 
 from pydantic import BaseModel, Field, model_validator
@@ -9,16 +10,27 @@ from pydantic import BaseModel, Field, model_validator
 from app.domains.conversion.models.enums import ConversionStatus
 
 _ALLOWED_TRANSITIONS: dict[ConversionStatus, set[ConversionStatus]] = {
-    ConversionStatus.QUEUED: {ConversionStatus.PROCESSING},
+    ConversionStatus.QUEUED: {
+        ConversionStatus.PROCESSING,
+        ConversionStatus.PAUSED,
+        ConversionStatus.CANCELLED,
+    },
     ConversionStatus.PROCESSING: {
         ConversionStatus.COMPLETED,
         ConversionStatus.FAILED,
         ConversionStatus.QUEUED,  # orphan recovery on worker startup (§27)
         ConversionStatus.PARTIAL,
+        ConversionStatus.PAUSED,
+        ConversionStatus.CANCELLED,
+    },
+    ConversionStatus.PAUSED: {
+        ConversionStatus.QUEUED,  # resume — worker continues from checkpoints
+        ConversionStatus.CANCELLED,
     },
     ConversionStatus.FAILED: {ConversionStatus.QUEUED},
     ConversionStatus.PARTIAL: {ConversionStatus.QUEUED},
     ConversionStatus.COMPLETED: set(),
+    ConversionStatus.CANCELLED: set(),
 }
 
 
@@ -35,6 +47,10 @@ class Conversion(BaseModel):
     total_pages: int = Field(default=0, ge=0)
     current_page: int = Field(default=0, ge=0)
     error: ConversionError | None = None
+    source_key: str | None = None
+    source_sha256: str | None = None
+    source_size: int = Field(default=0, ge=0)
+    source_mime: str | None = None
 
     @model_validator(mode="after")
     def check_page_bounds(self) -> "Conversion":

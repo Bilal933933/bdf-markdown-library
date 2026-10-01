@@ -1,7 +1,7 @@
 """PageCheckpoint — resume pointer of one page within a conversion.
 
 Required: conversion_id, page_number. Optional: status (pending),
-method, quality, attempts (0).
+method, quality, attempts (0), note.
 """
 
 from pydantic import BaseModel, Field, PositiveInt
@@ -16,3 +16,4 @@ class PageCheckpoint(BaseModel):
     method: ExtractionMethod | None = None
     quality: float | None = Field(default=None, ge=0.0, le=1.0)
     attempts: int = Field(default=0, ge=0)
+    note: str | None = None

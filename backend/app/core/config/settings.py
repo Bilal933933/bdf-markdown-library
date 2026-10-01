@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     app_env: AppEnvironment = "local"
     debug: bool = True
     database_url: PostgresDsn | None = None
+    test_database_url: PostgresDsn | None = None
     redis_url: RedisDsn | None = None
     storage_dir: Path = PROJECT_ROOT / "storage"
     log_file: Path = PROJECT_ROOT / "logs" / "app.log"
@@ -45,6 +46,10 @@ class Settings(BaseSettings):
         "gemini-flash-latest,gemini-flash-lite-latest"
     )
     gemini_prompt: str = "انسخ محتوى هذه الصفحة نصًا فقط، لا شيء آخر."
+    gemini_retry_prompt: str = (
+        "انسخ محتوى هذه الصفحة نصًا بدقة تامة، مع الحفاظ على التشكيل والبنية. لا تشرح ولا تضف شيئًا."
+    )
+    camel_db_path: str = ""
 
     @field_validator("app_name", mode="before")
     @classmethod

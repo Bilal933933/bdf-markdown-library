@@ -24,8 +24,12 @@ def test_upgrade_sql_creates_both_tables() -> None:
     sql = alembic_sql("upgrade", "head", "--sql")
     assert "CREATE TABLE conversions" in sql
     assert "CREATE TABLE page_checkpoints" in sql
+    assert "CREATE TABLE artifacts" in sql
     assert "ADD COLUMN heartbeat_at" in sql
     assert "ADD COLUMN created_at" in sql
+    assert "ADD COLUMN note" in sql
+    assert "ADD COLUMN source_sha256" in sql
+    assert "ADD COLUMN request_id" in sql
 
 
 def test_downgrade_sql_drops_both_tables() -> None:

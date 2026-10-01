@@ -24,7 +24,9 @@ def test_engine_requires_configured_url() -> None:
 
 
 def test_expected_tables_registered() -> None:
-    assert {"conversions", "page_checkpoints"} <= set(Base.metadata.tables)
+    assert {"conversions", "page_checkpoints", "conversion_events", "artifacts"} <= set(
+        Base.metadata.tables
+    )
 
 
 def test_db_session_runs_and_closes() -> None:

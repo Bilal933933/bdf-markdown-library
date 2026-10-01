@@ -257,6 +257,13 @@ Gemini
 - نتيجة التحقق الحي (Windows): الحزمة والنماذج العربية تنزل وتعمل حتى الاستدلال، ثم ينهار `paddlepaddle` داخل oneDNN (`ConvertPirAttribute2RuntimeAttribute` — عدم توافق البناء). القرار: Gemini هو OCR العامل هنا؛ Paddle لبيئة Linux/Docker لاحقًا.
 - ربط العامل (تصيير الصفحة + صناديق الكتل) تم للنص (V1)؛ صناديق OCR الدقيقة مؤجلة.
 
+## 6.6 تخطي الفاشل (مثبت)
+
+- أي فشل على مستوى الصفحة (استخراج/OCR/حفظ/أصول) يُحتوى: checkpoint بـ`FAILED` و`note` سببية ثم متابعة — موت العملية ممنوع.
+- رفض Gemini (`RECITATION`/`SAFETY`) ← ملاحظة `ocr_refused` (لا نص مخزن ولا إعادة).
+- عطل مرحلة التجميع ← التحويل `FAILED` برسالة بدل التعليق في `processing`.
+- الأصول best-effort: فشل صورة لا يُسقط صفحتها.
+
 ---
 
 # 7. Quality Gate
@@ -882,13 +889,17 @@ document.md
   - TXT: فقرات مقسمة على الأسطر الفارغة (`utf-8-sig` ثم `cp1256`) (`method=text`).
 - العامل يفرّع على الامتداد: PDF المسار الحالي، وغيره بناء الكتل مباشرة ثم نفس البوابة والتجميع.
 - الحدود من الإعدادات: `max_file_size` (افتراضي 100MB) و`max_pages` (افتراضي 2000) — التجاوز `422` (`VALIDATION_ERROR`).
-- التدفق: فحص الحجم ← عدّ الصفحات (`PyMuPDF`) ← حفظ `{id}/input.pdf` في `Storage` ← صف `conversions` + صفوف `page_checkpoints` (`PENDING`) ← الحالة `queued`.
+- التدفق: فحص الحجم ← عدّ الصفحات (`PyMuPDF`) ← حفظ `{id}/original.<ext>` في `Storage` مع `sha256` وحجم ونوع ← صف `conversions` + صفوف `page_checkpoints` (`PENDING`) ← الحالة `queued`.
 - الاستجابة هي نموذج الدومين `Conversion` نفسه (لا schemas مكررة).
 - الـPOST يُحاول `enqueue` في طابور `conversions`؛ عند غياب Redis يبقى التحويل `queued` (§20.1).
 
 ## 19.5 تنزيل المخرجات (V1 — مثبت)
 
 - `GET /api/v1/conversions/{id}/outputs/{key}` — أي ملف تحت `{id}/output/` (`document.md`، `metadata.json`، `units/...`).
+- `POST /api/v1/conversions/{id}/retry` ← `202` يعيد الفاشل/الجزئي للطابور (يستأنف من checkpoints)؛ المكتمل/النشط ← `409`.
+- `POST /api/v1/conversions/{id}/pause` ← `202` يجمّد المنتظر/الجاري في `paused` (يتوقف العامل عند حد الصفحة التالي)؛ غيرهما ← `409`.
+- `POST /api/v1/conversions/{id}/resume` ← `202` يعيد الموقوف للطابور (يكمل من checkpoints)؛ غير الموقوف ← `409`.
+- `POST /api/v1/conversions/{id}/cancel` ← `202` ينهي المنتظر/الجاري/الموقوف في `cancelled` (نهائي) مع إسقاط مهمة RQ المنتظرة؛ المكتمل/الفاشل ← `409`.
 - الأنواع: `.md` ← `text/markdown`، `.json` ← `application/json`، غيرهما ← `application/octet-stream`.
 - التحويل المجهول أو المفتاح المفقود/غير الآمن ← `404` (لا تسريب)؛ المفتاح يُحل داخل نطاق التحويل فقط.
 
@@ -948,7 +959,7 @@ Conversion Pipeline
 - حلقة الصفحة: `detect_blocks` ← قبول؟ ← وإلا تصيير الصفحة (`×2`) و`ocr_page_text` (Paddle/Gemini) ← بناء فقرات من النص ← `analyze_page` ← حفظ `{id}/pages/{n}.json` ← checkpoint (`DONE` + الطريقة والجودة) — commit بعد كل صفحة.
 - المحاولات: حتى 3 لكل صفحة (الأولى نصية، ثم OCR) ثم `FAILED`؛ أي صفحة `FAILED` ← التحويل `FAILED` (رمز `PAGE_FAILED`).
 - النجاح: تجميع `Document` ← `normalize_heading_levels` ← `render_document` ← حفظ `output/document.md` و`output/metadata.json` ← `COMPLETED` بتقدم 100.
-- عامل واحد في V1؛ عند الإقلاع يستدعي `requeue_orphans` (إيجار 300 ثانية على `heartbeat_at` — ترحيل `0002`).
+- عامل واحد في V1؛ عند الإقلاع يستدعي `requeue_orphans` (إيجار 300 ثانية على `heartbeat_at` — ترحيل `0002`) ثم `enqueue_missing_jobs` (تحويل `queued` قديم بلا مهمة نشطة في الطابور/المنفذ — يغطي مهام مات عاملها).
 - الدخول: `python -m app.worker` (يستمع على `conversions`).
 - سيرفر dev المحلي: نسخة Windows الأصلية (Redis 5 — العميل مثبت على `protocol=2` لانعدام `HELLO`) على `6379`؛ الرابط في `backend/.env` (`REDIS_URL`)؛ المرجع الوظيفي للمهام `module.attr` بالنقاط (RQ 2.x).
 
@@ -998,11 +1009,12 @@ save(key, data) -> key / load(key) -> bytes / delete(key) / exists(key) -> bool
 - تخطيط المفاتيح لكل تحويل:
 
 ```text
-{conversion_id}/input.<ext>
+{conversion_id}/original.<ext>     # الملف الأصلي — مُتتبع بـ source_sha256/source_key
 {conversion_id}/pages/{n}.json      # كتل الصفحة — حبيبية الاستئناف
 {conversion_id}/assets/{asset_id}
-{conversion_id}/output/document.md
+{conversion_id}/output/document.md  # المستخرج — مُتتبع في جدول artifacts بمعرف + sha256
 {conversion_id}/output/metadata.json
+{conversion_id}/output/manifest.json  # يربط الأصلي بالمخرجات والسجل
 ```
 
 - البداية: نظام ملفات محلي تحت `STORAGE_DIR` (كتابة ذرية `temp + rename`)، بلا تبعية جديدة.
@@ -1071,6 +1083,12 @@ Resume
 
 وسيكون الاختبار جزءًا أساسيًا من تطوير Pipeline.
 
+## 25.1 عزل الاختبارات
+
+- `TEST_DATABASE_URL` فارغ ← الاختبارات على قاعدة التطوير (الوضع السابق).
+- مضبوط ← `tests/conftest.py` يرقّيها لآخر ترحيل ويوجه التطبيق إليها (أنشئها مرة واحدة بـ`CREATE DATABASE`).
+- لا `create_all` في مسار الاختبار المعزول — الترحيلات هي مصدر المخطط دائما.
+
 ---
 
 # 26. Dependencies — القائمة الحالية
@@ -1131,7 +1149,7 @@ queued → processing → completed
 - **الـprogress؟** مشتق: `round(100*done/total)` (صفر إن `total=0`)؛ `current_page` = آخر صفحة حاولها العامل.
 - **الأخطاء؟** `Conversion.error` = أول خطأ قاتل `{code,message}` (الرموز من `core/errors/codes.py`)؛ وإخفاقات الصفحات في checkpoints.
 - **الاستئناف؟** صف `PageCheckpoint` لكل صفحة عند القيد (`PENDING`)؛ العامل يتخطى `DONE` ويكمل من أول غير-`DONE` — لا إعادة من الصفر أبدًا.
-- **عند إعادة تشغيل العامل؟** تحويلات `PROCESSING` بنبض أقدم من 300 ثانية (أو بلا نبض) تُعاد `QUEUED` عبر `requeue_orphans` — لا مساس بتحويل يعمل عليه عامل حي.
+- **عند إعادة تشغيل العامل؟** تحويلات `PROCESSING` بنبض أقدم من 300 ثانية أو بلا نبض تُعاد `QUEUED` عبر `requeue_orphans` — والنبض يتجدد كل 60 ثانية في خيط خلفي أثناء التشغيل (صفحات OCR الطويلة لا تبدو يتيمة).
 - **retry مقابل resume؟** `retry` = إعادة نفس الصفحة بنفس الطريقة (`attempts+1`، وTenacity لـGemini/الشبكة فقط)؛ `resume` = المتابعة من checkpoints بعد توقف.
 
 ## 27.2 قواعد الإكمال

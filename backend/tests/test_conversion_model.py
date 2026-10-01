@@ -41,6 +41,29 @@ def test_illegal_transitions_are_rejected() -> None:
         done.transition_to(ConversionStatus.PARTIAL)
 
 
+def test_pause_resume_cancel_transitions() -> None:
+    processing = Conversion(id="c1", source_file="b.pdf", status=ConversionStatus.PROCESSING)
+    assert processing.transition_to(ConversionStatus.PAUSED).status == ConversionStatus.PAUSED
+    assert processing.transition_to(ConversionStatus.CANCELLED).status == ConversionStatus.CANCELLED
+    paused = Conversion(id="c1", source_file="b.pdf", status=ConversionStatus.PAUSED)
+    assert paused.transition_to(ConversionStatus.QUEUED).status == ConversionStatus.QUEUED
+    assert paused.transition_to(ConversionStatus.CANCELLED).status == ConversionStatus.CANCELLED
+    queued = Conversion(id="c1", source_file="b.pdf")
+    assert queued.transition_to(ConversionStatus.PAUSED).status == ConversionStatus.PAUSED
+    assert queued.transition_to(ConversionStatus.CANCELLED).status == ConversionStatus.CANCELLED
+
+
+def test_terminal_states_reject_exit() -> None:
+    cancelled = Conversion(id="c1", source_file="b.pdf", status=ConversionStatus.CANCELLED)
+    with pytest.raises(ValueError, match="illegal transition"):
+        cancelled.transition_to(ConversionStatus.QUEUED)
+    completed = Conversion(id="c2", source_file="b.pdf", status=ConversionStatus.COMPLETED)
+    with pytest.raises(ValueError, match="illegal transition"):
+        completed.transition_to(ConversionStatus.PAUSED)
+    with pytest.raises(ValueError, match="illegal transition"):
+        completed.transition_to(ConversionStatus.CANCELLED)
+
+
 def test_current_page_bounded_by_total() -> None:
     with pytest.raises(ValidationError):
         Conversion(id="c1", source_file="b.pdf", total_pages=10, current_page=11)

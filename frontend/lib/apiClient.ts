@@ -12,6 +12,33 @@ const ENV_API_KEY = process.env.NEXT_PUBLIC_API_KEY?.trim();
 const API_BASE_URL = ENV_API_URL || "http://localhost:8123/api/v1";
 const STORAGE_KEY = "dce.api_key";
 
+/** رابط تنزيل مباشر لأحد مخرجات التحويل. */
+export function outputUrl(conversionId: string, key: string): string {
+  return `${API_BASE_URL}/conversions/${conversionId}/outputs/${key}`;
+}
+
+/**
+ * جلب مخرج نصي (مثل document.md) — يُستدعى فقط عبر TanStack Query.
+ * يرسل X-API-Key لأن apiClient المخصص لـ JSON لا يصلح للنص الخام.
+ */
+export async function fetchOutputText(conversionId: string, key: string): Promise<string> {
+  const apiKey = getStoredApiKey();
+  const response = await fetch(`${API_BASE_URL}/conversions/${conversionId}/outputs/${key}`, {
+    headers: { ...(apiKey ? { "X-API-Key": apiKey } : {}) },
+  });
+
+  if (!response.ok) {
+    throw {
+      status: response.status,
+      code: "HTTP_ERROR",
+      message: "تعذر جلب الملف. يرجى المحاولة مرة أخرى.",
+      details: null,
+    };
+  }
+
+  return response.text();
+}
+
 export function getStoredApiKey(): string | null {
   if (typeof window === "undefined") return ENV_API_KEY ?? null;
   return window.localStorage.getItem(STORAGE_KEY) ?? ENV_API_KEY ?? null;

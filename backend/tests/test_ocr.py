@@ -131,3 +131,28 @@ def test_paddle_unavailable_without_library() -> None:
 
 def test_gemini_unavailable_without_keys() -> None:
     assert GeminiProvider.from_settings(empty_settings()).is_available() is False
+
+
+def test_gemini_dead_model_skips_to_next() -> None:
+    seen: list[str] = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        seen.append(str(request.url))
+        if "dead:" in str(request.url):
+            return httpx.Response(404, json={"error": {"message": "not found"}})
+        return httpx.Response(200, json=gemini_ok("نص"))
+
+    provider = GeminiProvider(
+        keys=["k"], models=["dead", "m2"], prompt="p", transport=httpx.MockTransport(handler)
+    )
+    assert provider.ocr(FAKE_IMAGE, "image/jpeg").text == "نص"
+    assert len(seen) == 2
+
+
+def test_gemini_all_dead_models_raise_named_error() -> None:
+    transport = httpx.MockTransport(
+        lambda request: httpx.Response(404, json={"error": {"message": "not found"}})
+    )
+    provider = GeminiProvider(keys=["k"], models=["dead"], prompt="p", transport=transport)
+    with pytest.raises(OCRError, match="dead"):
+        provider.ocr(FAKE_IMAGE, "image/jpeg")

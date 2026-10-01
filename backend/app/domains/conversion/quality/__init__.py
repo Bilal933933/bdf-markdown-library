@@ -5,5 +5,6 @@ from app.domains.conversion.quality.analyzer import (
     QualityResult,
     analyze_page,
 )
+from app.domains.conversion.quality.lexicon import WordKnown, get_word_checker
 
-__all__ = ["QualityDecision", "QualityResult", "analyze_page"]
+__all__ = ["QualityDecision", "QualityResult", "WordKnown", "analyze_page", "get_word_checker"]

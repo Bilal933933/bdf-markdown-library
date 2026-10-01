@@ -75,3 +75,18 @@ def test_code_blocks_are_excluded_from_arabic_ratio() -> None:
     )
     result = analyze_page(page)
     assert result.decision == QualityDecision.ACCEPT
+
+
+def test_shattered_mojibake_is_rejected() -> None:
+    shattered = "بب تت ثث جج حح خخ دد ذذ رر زز سس شش"
+    result = analyze_page(make_page([shattered]))
+    assert "fragmented_text" in result.reasons
+    assert result.decision == QualityDecision.GEMINI
+
+
+def test_healthy_prose_has_no_fragment_penalty() -> None:
+    result = analyze_page(
+        make_page([GOOD_ARABIC, "كان وأخواتها أفعال ناسخة ترفع المبتدأ وتنصب الخبر"])
+    )
+    assert "fragmented_text" not in result.reasons
+    assert result.decision == QualityDecision.ACCEPT

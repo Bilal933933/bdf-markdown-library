@@ -202,5 +202,6 @@ DocumentMetadata
 | `ContentStats` / `ExtractionInfo` / `DocumentMetadata` | `app/domains/conversion/models/metadata.py` |
 | `Document` | `app/domains/conversion/models/document.py` |
 | `Conversion` / `ConversionError` + `ConversionStatus` | `app/domains/conversion/models/conversion.py` + `enums.py` |
+| `OutputArtifact` (تتبع المخرجات: `id` لكل ملف + `sha256`) | `app/domains/conversion/models/artifact.py` |
 | `PageCheckpoint` + `CheckpointStatus` | `app/domains/conversion/models/checkpoint.py` + `enums.py` |
 | الواجهة العامة (`__all__`) | `app/domains/conversion/models/__init__.py` |

@@ -11,7 +11,9 @@ from app.core.config import Settings
 from app.domains.conversion.pipeline.process import process_conversion
 from app.domains.conversion.services.conversions import create_conversion
 from app.infrastructure.database import (
+    ArtifactRow,
     Base,
+    ConversionEventRow,
     ConversionRow,
     PageCheckpointRow,
     get_engine,
@@ -61,7 +63,9 @@ def processed(tmp_path: Path) -> Iterator[tuple[TestClient, str]]:
         app.dependency_overrides.clear()
         db = get_session_factory()()
         try:
+            db.query(ConversionEventRow).filter_by(conversion_id=conversion.id).delete()
             db.query(PageCheckpointRow).filter_by(conversion_id=conversion.id).delete()
+            db.query(ArtifactRow).filter_by(conversion_id=conversion.id).delete()
             db.query(ConversionRow).filter_by(id=conversion.id).delete()
             db.commit()
         finally:
@@ -82,6 +86,27 @@ def test_download_unit_metadata_json(processed: tuple[TestClient, str]) -> None:
     assert response.status_code == 200
     assert "application/json" in response.headers["content-type"]
     assert response.json()["title"] == "الوحدة الأولى"
+
+
+def test_artifacts_endpoint_tracks_outputs_with_ids(
+    processed: tuple[TestClient, str],
+) -> None:
+    http, conversion_id = processed
+    response = http.get(f"/api/v1/conversions/{conversion_id}/artifacts")
+    assert response.status_code == 200
+    artifacts = response.json()["data"]
+    kinds = {a["kind"] for a in artifacts}
+    assert {"document", "metadata", "manifest"} <= kinds
+    for artifact in artifacts:
+        assert artifact["id"]
+        assert artifact["conversion_id"] == conversion_id
+        assert artifact["sha256"] and len(artifact["sha256"]) == 64
+        assert artifact["size"] > 0
+
+    manifest = http.get(f"/api/v1/conversions/{conversion_id}/outputs/manifest.json")
+    assert manifest.status_code == 200
+    assert manifest.json()["conversion_id"] == conversion_id
+    assert manifest.json()["source_sha256"] is not None
 
 
 def test_missing_key_and_conversion_return_404(processed: tuple[TestClient, str]) -> None:

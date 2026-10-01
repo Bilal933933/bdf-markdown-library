@@ -16,6 +16,39 @@ const BOOK_DIR = path.join(path.dirname(WORK), BOOK_NAME);
 const WASM_URL = path.join(WORK, "node_modules", "pdfjs-dist", "wasm").replace(/\\/g, "/") + "/";
 const CHUNK = 40;
 
+// Ghostscript pre-pass للصفحات الفاشلة فقط (مثبت: gs10.08.0).
+// إن تعذر التشغيل يعيد null ويكمل pdfjs تلقائيًا.
+const GS_EXE = process.env.GS_EXE || "C:\\Program Files\\gs\\gs10.08.0\\bin\\gswin64c.exe";
+const GS_DPI = parseInt(process.env.GS_DPI || "300", 10);
+// FORCE_ALL=1: إعادة كل الصفحات 1..TOTAL (للنص المشوه الطويل الذي لا تكشفه عتبة 80).
+// مع حماية: إن كان OCR الجديد <80 حرفًا يُبقي النص الأصلي.
+const FORCE_ALL = process.env.FORCE_ALL === "1";
+
+function renderViaGhostscript(pageNum) {
+  if (!existsSync(GS_EXE)) return null;
+  const tmpGs = path.join(WORK, `tmp-gs-${pageNum}.png`);
+  try {
+    execFileSync(
+      GS_EXE,
+      [
+        "-dBATCH",
+        "-dNOPAUSE",
+        "-sDEVICE=png16m",
+        `-r${GS_DPI}`,
+        `-dFirstPage=${pageNum}`,
+        `-dLastPage=${pageNum}`,
+        `-sOutputFile=${tmpGs}`,
+        FILE,
+      ],
+      { timeout: 60000, stdio: "pipe" }
+    );
+    if (!existsSync(tmpGs)) return null;
+    return readFileSync(tmpGs);
+  } catch {
+    return null;
+  }
+}
+
 const CONTROL_RE = /[\u0000-\u001F\u007F-\u009F]/;
 
 function log(msg) {
@@ -35,15 +68,21 @@ function parseExisting(parts) {
 }
 
 async function ocrPage(doc, pageNum) {
-  const page = await doc.getPage(pageNum);
-  const base = page.getViewport({ scale: 1 });
-  const scale = 2500 / base.width;
-  const vp = page.getViewport({ scale });
-  const canvas = createCanvas(Math.ceil(vp.width), Math.ceil(vp.height));
-  const ctx = canvas.getContext("2d");
-  await page.render({ canvasContext: ctx, viewport: vp }).promise;
-  const png = canvas.toBuffer("image/png");
-  page.cleanup();
+  const gsPng = renderViaGhostscript(pageNum);
+  let png;
+  if (gsPng) {
+    png = gsPng;
+  } else {
+    const page = await doc.getPage(pageNum);
+    const base = page.getViewport({ scale: 1 });
+    const scale = 2500 / base.width;
+    const vp = page.getViewport({ scale });
+    const canvas = createCanvas(Math.ceil(vp.width), Math.ceil(vp.height));
+    const ctx = canvas.getContext("2d");
+    await page.render({ canvasContext: ctx, viewport: vp }).promise;
+    png = canvas.toBuffer("image/png");
+    page.cleanup();
+  }
   const clean = await sharp(png).grayscale().normalize().sharpen().png().toBuffer();
   const tmpCl = path.join(WORK, "tmp-fix-clean.png");
   const tmpOut = path.join(WORK, "tmp-fix-out");
@@ -77,18 +116,21 @@ async function main() {
       const cleanText = curText.replace(/[\u0000-\u001F\u007F-\u009F]/g, "");
       pagesMap.set(p, cleanText);
     }
-    if (usefulLen(pagesMap.get(p) || "") < 80 || p === 1) {
+    if (FORCE_ALL || usefulLen(pagesMap.get(p) || "") < 80 || p === 1) {
       try {
         const ocr = await ocrPage(doc, p);
-        pagesMap.set(p, ocr);
-        fixed++;
-        log(`صفحة ${p}: نصها مفيد <80 → أُعيدت بالـOCR (${ocr.length} حرف)`);
+        const keepOrig = FORCE_ALL && usefulLen(ocr) < 80;
+        if (!keepOrig) {
+          pagesMap.set(p, ocr);
+          fixed++;
+        }
+        log(`صفحة ${p}: نصها مفيد <80 → أُعيدت بالـOCR (${ocr.length} حرف)${keepOrig ? " — أُبقي الأصل" : ""}`);
       } catch (e) {
         log(`فشل OCR للصفحة ${p}: ${e.message}`);
       }
     }
   }
-  await doc.destroy();
+  await doc.destroy?.();
   log(`تم تصحيح ${fixed} صفحة بالـOCR وتنظيف الباقي من أحرف التحكم`);
 
   // إعادة بناء الملفات

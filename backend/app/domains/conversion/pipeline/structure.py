@@ -39,6 +39,26 @@ def _is_rtl(char: str) -> bool:
     return 0x0590 <= code <= 0x08FF or 0xFB00 <= code <= 0xFDFF or 0xFE70 <= code <= 0xFEFF
 
 
+def _is_presentation_form(char: str) -> bool:
+    code = ord(char)
+    return 0xFB50 <= code <= 0xFDFF or 0xFE70 <= code <= 0xFEFF
+
+
+def _needs_reorder(raw: str) -> bool:
+    """True only for unshaped visual-order extraction (presentation forms).
+
+    Proper fonts yield standard-block Arabic in logical order already and must
+    be left untouched — reordering them produces mirrored gibberish.
+    """
+    return any(_is_presentation_form(char) for char in raw)
+
+
+def restore_line(raw: str) -> str:
+    """Clean one extracted line, restoring logical order only when visual."""
+    text = _clean_text(raw)
+    return _visual_to_logical(text) if _needs_reorder(raw) else text
+
+
 def _visual_to_logical(text: str) -> str:
     """Restore logical order of unshaped visual-order extraction.
 
@@ -71,10 +91,10 @@ def _collect_lines(pdf_page: pymupdf.Page) -> list[dict]:
             continue
         for line in pdf_block.get("lines", []):
             raw = "".join(span.get("text", "") for span in line.get("spans", ""))
-            # PyMuPDF returns unshaped visual order: NFKC-fold, then restore
-            # logical order (whole RTL lines, else RTL runs). pdfplumber
-            # already returns logical order, so tables use _clean_text only.
-            text = _visual_to_logical(_clean_text(raw))
+            # Fonts without shaping yield visual order (restore it); proper
+            # fonts already yield logical order (kept). pdfplumber tables use
+            # _clean_text only (already logical).
+            text = restore_line(raw)
             if not text:
                 continue
             spans = line.get("spans", [])

@@ -17,7 +17,7 @@ from app.domains.conversion.ocr.provider import (
     OCRResult,
     OCRUnavailableError,
 )
-from app.domains.conversion.quality import QualityDecision, analyze_page
+from app.domains.conversion.quality import QualityDecision, analyze_page, get_word_checker
 
 
 def _as_page(text: str, page_number: int, method: ExtractionMethod) -> Page:
@@ -52,7 +52,10 @@ def ocr_page_text(
         except OCRError:
             result = None
         if result is not None:
-            judged = analyze_page(_as_page(result.text, page_number, result.method))
+            judged = analyze_page(
+                _as_page(result.text, page_number, result.method),
+                lexicon=get_word_checker(settings.camel_db_path),
+            )
             if judged.decision == QualityDecision.ACCEPT:
                 return result
     if not fallback.is_available():

@@ -1,7 +1,8 @@
 """Gemini fallback OCR — direct REST, same contract as the _ocr scripts.
 
-Keys rotate outer, models inner; quota (429/503) moves on, network blips retry
-via Tenacity, RECITATION/SAFETY raises (never stored as page text).
+Keys rotate outer, models inner; quota (429/503) moves on, dead models
+(400/403/404) are skipped, network blips retry via Tenacity,
+RECITATION/SAFETY raises (never stored as page text).
 """
 
 import base64
@@ -27,10 +28,15 @@ from app.domains.conversion.ocr.provider import (
 _ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 _TIMEOUT = 120.0
 _BLOCKED_REASONS = {"RECITATION", "SAFETY"}
+_DEAD_MODEL_CODES = {400, 403, 404}
 
 
 class _QuotaExhausted(Exception):
     pass
+
+
+class _DeadModel(OCRError):
+    """A model/key pair that will never work — skip, don't abort rotation."""
 
 
 class GeminiProvider:
@@ -93,6 +99,9 @@ class GeminiProvider:
                 except _QuotaExhausted as exc:
                     last = exc
                     continue
+                except _DeadModel as exc:
+                    last = exc
+                    continue
         raise last
 
     @retry(
@@ -107,8 +116,10 @@ class GeminiProvider:
         response = client.post(_ENDPOINT.format(model=model), params={"key": key}, json=body)
         if response.status_code in (429, 503):
             raise _QuotaExhausted(f"{model} returned {response.status_code}")
+        if response.status_code in _DEAD_MODEL_CODES:
+            raise _DeadModel(f"Gemini returned {response.status_code} on {model}")
         if response.status_code >= 400:
-            raise OCRError(f"Gemini returned {response.status_code}")
+            raise OCRError(f"Gemini returned {response.status_code} on {model}")
         return response
 
 

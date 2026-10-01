@@ -10,12 +10,21 @@ from app.api.envelopes import Meta, SuccessEnvelope
 from app.core.config import Settings, get_settings
 from app.core.errors.exceptions import NotFoundError
 from app.core.logging import get_request_id
-from app.domains.conversion.models import Conversion
-from app.domains.conversion.pipeline.process import queue_conversion
+from app.domains.conversion.models import Conversion, OutputArtifact
+from app.domains.conversion.pipeline.process import (
+    cancel_conversion,
+    pause_conversion,
+    queue_conversion,
+    requeue_conversion,
+    resume_conversion,
+)
+from app.domains.conversion.schemas import ConversionEvent
 from app.domains.conversion.services.conversions import (
     create_conversion,
     get_conversion,
+    list_artifacts,
     list_conversions,
+    list_events,
 )
 from app.infrastructure.database.session import get_db
 from app.infrastructure.storage import LocalStorage
@@ -60,6 +69,80 @@ def conversion_status(
 ) -> SuccessEnvelope[Conversion]:
     return SuccessEnvelope(
         data=get_conversion(db, conversion_id), meta=Meta(request_id=get_request_id())
+    )
+
+
+@router.post(
+    "/conversions/{conversion_id}/retry",
+    response_model=SuccessEnvelope[Conversion],
+    status_code=202,
+)
+def retry_conversion(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[Conversion]:
+    conversion = requeue_conversion(db, conversion_id)
+    queue_conversion(conversion.id)
+    return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
+
+
+@router.post(
+    "/conversions/{conversion_id}/pause",
+    response_model=SuccessEnvelope[Conversion],
+    status_code=202,
+)
+def pause(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[Conversion]:
+    conversion = pause_conversion(db, conversion_id)
+    return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
+
+
+@router.post(
+    "/conversions/{conversion_id}/resume",
+    response_model=SuccessEnvelope[Conversion],
+    status_code=202,
+)
+def resume(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[Conversion]:
+    conversion = resume_conversion(db, conversion_id)
+    queue_conversion(conversion.id)
+    return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
+
+
+@router.post(
+    "/conversions/{conversion_id}/cancel",
+    response_model=SuccessEnvelope[Conversion],
+    status_code=202,
+)
+def cancel(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[Conversion]:
+    conversion = cancel_conversion(db, conversion_id)
+    return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
+
+
+@router.get(
+    "/conversions/{conversion_id}/events",
+    response_model=SuccessEnvelope[list[ConversionEvent]],
+)
+def conversion_events(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[list[ConversionEvent]]:
+    return SuccessEnvelope(
+        data=list_events(db, conversion_id), meta=Meta(request_id=get_request_id())
+    )
+
+
+@router.get(
+    "/conversions/{conversion_id}/artifacts",
+    response_model=SuccessEnvelope[list[OutputArtifact]],
+)
+def conversion_artifacts(
+    conversion_id: str, db: Annotated[Session, Depends(get_db)]
+) -> SuccessEnvelope[list[OutputArtifact]]:
+    return SuccessEnvelope(
+        data=list_artifacts(db, conversion_id), meta=Meta(request_id=get_request_id())
     )
 
 

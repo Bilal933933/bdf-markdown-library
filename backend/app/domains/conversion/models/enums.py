@@ -31,6 +31,8 @@ class UnitStatus(StrEnum):
 class ConversionStatus(StrEnum):
     QUEUED = "queued"
     PROCESSING = "processing"
+    PAUSED = "paused"
+    CANCELLED = "cancelled"
     COMPLETED = "completed"
     FAILED = "failed"
     PARTIAL = "partial"

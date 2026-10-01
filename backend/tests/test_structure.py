@@ -1,7 +1,7 @@
 import pymupdf
 
 from app.domains.conversion.models import BlockType, ExtractionMethod
-from app.domains.conversion.pipeline.structure import detect_blocks
+from app.domains.conversion.pipeline.structure import detect_blocks, restore_line
 
 
 def build_sample_pdf() -> tuple[pymupdf.Page, bytes]:
@@ -88,3 +88,26 @@ def test_embedded_image_becomes_image_block() -> None:
     assert images[0].source.bbox is not None
     assert images[0].source.method == ExtractionMethod.PYMUPDF
     assert blocks[-1].type == BlockType.IMAGE
+
+
+def test_logical_order_lines_are_untouched() -> None:
+    assert restore_line("العلاقات اللفظية") == "العلاقات اللفظية"
+    assert restore_line("Analogies العلاقات اللفظية") == "Analogies العلاقات اللفظية"
+    assert restore_line("(اقتطاعات مثبتة)") == "(اقتطاعات مثبتة)"
+
+
+def test_visual_order_pdf_line_is_restored() -> None:
+    sentence = "المبتدأ اسم مرفوع يقع في أول الجملة"
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_font(fontname="arr", fontfile="C:/Windows/Fonts/arial.ttf")
+    page.insert_text((72, 72), sentence, fontname="arr", fontsize=12)
+    raw = "".join(
+        span.get("text", "")
+        for block in page.get_text("dict")["blocks"]
+        if block.get("type", 0) == 0
+        for line in block.get("lines", [])
+        for span in line.get("spans", [])
+    )
+    assert raw != sentence  # visual order as extracted
+    assert restore_line(raw) == sentence
