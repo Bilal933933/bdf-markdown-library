@@ -31,6 +31,9 @@ _DIACRITIC_WORD_FLOOR = 0.3
 _MIN_WORDS_FOR_FRAGMENT = 10
 _FRAGMENT_KNEE = 0.2
 _FRAGMENT_CAP = 0.6
+_MIN_WORDS_FOR_MIXED = 10
+_MIXED_KNEE = 0.1
+_MIXED_CAP = 0.6
 
 _DIACRITICS = re.compile(r"[ً-ٰٟ]")
 
@@ -155,6 +158,16 @@ def analyze_page(
         frag = tiny / len(lexemes)
         if frag > _FRAGMENT_KNEE:
             penalties.append(("fragmented_text", min(_FRAGMENT_CAP, (frag - _FRAGMENT_KNEE) * 1.2)))
+
+    arabic_words = [word for word in lang_text.split() if any(_is_arabic(char) for char in word)]
+    if len(arabic_words) >= _MIN_WORDS_FOR_MIXED:
+        mixed = sum(
+            1
+            for word in arabic_words
+            if any(char.isascii() and char.isdigit() or "٠" <= char <= "٩" for char in word)
+        ) / len(arabic_words)
+        if mixed > _MIXED_KNEE:
+            penalties.append(("mixed_alnum", min(_MIXED_CAP, (mixed - _MIXED_KNEE) * 2.0)))
 
     if lexicon is not None:
         oov, vocalized = _camel_stats(lang_text, lexicon)

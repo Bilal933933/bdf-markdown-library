@@ -90,3 +90,38 @@ def test_healthy_prose_has_no_fragment_penalty() -> None:
     )
     assert "fragmented_text" not in result.reasons
     assert result.decision == QualityDecision.ACCEPT
+
+
+def _mixed_text(ratio: float = 0.4, seed: int = 7) -> str:
+    import random
+
+    random.seed(seed)
+    sents = [
+        "المبتدأ اسم مرفوع يقع في أول الجملة",
+        "الخبر يتمم معناه ويكمل الفائدة للمستمع",
+        "كان وأخواتها أفعال ناسخة ترفع المبتدأ",
+        "الحال وصف منصوب يبين هيئة صاحبه",
+        "التمييز يزيل الإبهام عن الجملة",
+        "البدل تابع يوضح المقصود بالحكم",
+        "التربية عملية تشكيل أفراد المجتمع",
+        "التعلم تغير شبه دائم في السلوك",
+    ]
+    words = " ".join(sents).split()
+    digits = "٠١٢٣٤٥٦٧٨٩"
+    return " ".join(
+        w[:2] + random.choice(digits) + w[2:] if random.random() < ratio else w for w in words
+    )
+
+
+def test_mixed_alnum_distortion_is_rejected() -> None:
+    result = analyze_page(make_page([_mixed_text()]))
+    assert "mixed_alnum" in result.reasons
+    assert result.decision in (QualityDecision.RETRY, QualityDecision.GEMINI)
+
+
+def test_healthy_prose_has_no_mixed_penalty() -> None:
+    result = analyze_page(
+        make_page([GOOD_ARABIC, "الأسئلة 1 و 2 و 10 في الصفحة الأولى من الكتاب المدرسي"])
+    )
+    assert "mixed_alnum" not in result.reasons
+    assert result.decision == QualityDecision.ACCEPT
