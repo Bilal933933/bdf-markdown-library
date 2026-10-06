@@ -446,7 +446,11 @@ def test_events_log_full_lifecycle(client: tuple[TestClient, list[str]], tmp_pat
 
     queued = http.get(f"/api/v1/conversions/{conversion_id}/events")
     assert queued.status_code == 200
-    assert [e["kind"] for e in queued.json()["data"]] == ["queued"]
+    # أحداث البنية (طابور غير متاح) اختيارية حسب توفر Redis في البيئة.
+    queued_kinds = [
+        e["kind"] for e in queued.json()["data"] if e["kind"] not in ("queue_unavailable",)
+    ]
+    assert queued_kinds == ["queued"]
     assert queued.json()["data"][0]["request_id"] is not None
 
     db = get_session_factory()()
@@ -458,9 +462,9 @@ def test_events_log_full_lifecycle(client: tuple[TestClient, list[str]], tmp_pat
 
     events = http.get(f"/api/v1/conversions/{conversion_id}/events")
     assert events.status_code == 200
-    kinds = [e["kind"] for e in events.json()["data"]]
+    kinds = [e["kind"] for e in events.json()["data"] if e["kind"] not in ("queue_unavailable",)]
     assert kinds == ["queued", "started", "page_done", "completed"]
-    page_done = events.json()["data"][2]
+    page_done = next(e for e in events.json()["data"] if e["kind"] == "page_done")
     assert page_done["page_number"] == 1
     assert page_done["quality"] is not None and page_done["quality"] >= 0.75
 
@@ -477,7 +481,10 @@ def test_pause_is_recorded_as_event(client: tuple[TestClient, list[str]]) -> Non
     assert paused.status_code == 202
 
     events = http.get(f"/api/v1/conversions/{conversion_id}/events")
-    assert [e["kind"] for e in events.json()["data"]] == ["queued", "paused"]
+    assert [e["kind"] for e in events.json()["data"] if e["kind"] != "queue_unavailable"] == [
+        "queued",
+        "paused",
+    ]
 
 
 def test_done_checkpoints_backfill_page_events(
@@ -502,7 +509,7 @@ def test_done_checkpoints_backfill_page_events(
 
     events = http.get(f"/api/v1/conversions/{conversion_id}/events")
     assert events.status_code == 200
-    data = events.json()["data"]
+    data = [e for e in events.json()["data"] if e["kind"] != "queue_unavailable"]
     assert [e["kind"] for e in data] == ["queued", "page_done"]
     assert data[1]["page_number"] == 1
     assert data[1]["method"] == "pymupdf"
@@ -539,5 +546,5 @@ def test_rejected_page_retries_after_requeue(
         db.close()
 
     events = http.get(f"/api/v1/conversions/{conversion_id}/events")
-    kinds = [e["kind"] for e in events.json()["data"]]
+    kinds = [e["kind"] for e in events.json()["data"] if e["kind"] != "queue_unavailable"]
     assert kinds == ["queued", "requeued", "started", "page_done", "completed"]

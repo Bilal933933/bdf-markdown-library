@@ -18,6 +18,9 @@ const KIND_META: Record<string, { label: string; dot: string }> = {
   completed: { label: "اكتمال", dot: "bg-emerald-500" },
   partial: { label: "اكتمال جزئي", dot: "bg-orange-500" },
   failed: { label: "فشل", dot: "bg-red-500" },
+  asset_skipped: { label: "أصل متخطى", dot: "bg-orange-400" },
+  log_warning: { label: "تحذير", dot: "bg-yellow-500" },
+  queue_unavailable: { label: "الطابور غير متاح", dot: "bg-yellow-500" },
 };
 
 function EventRow({ event }: { event: ConversionEvent }) {
@@ -38,6 +41,12 @@ function EventRow({ event }: { event: ConversionEvent }) {
         {event.kind === "page_failed" && event.note && (
           <span className="text-xs text-destructive">{event.note}</span>
         )}
+        {(event.kind === "asset_skipped" ||
+          event.kind === "log_warning" ||
+          event.kind === "queue_unavailable") &&
+          event.note && (
+            <span className="text-xs text-muted-foreground">{event.note}</span>
+          )}
       </div>
     </li>
   );

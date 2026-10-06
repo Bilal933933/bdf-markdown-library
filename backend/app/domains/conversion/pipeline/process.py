@@ -59,6 +59,37 @@ from app.infrastructure.storage import LocalStorage, Storage
 
 logger = logging.getLogger(__name__)
 
+
+def _log_and_record(
+    db: Session | None,
+    conversion_id: str | None,
+    level: str,
+    msg: str,
+    *args: object,
+    kind: str | None = None,
+    note: str | None = None,
+    page_number: int | None = None,
+) -> None:
+    """تسجيل مزدوج: مسجّل (طرفية + ملف) + حدث DB تظهره الواجهة.
+
+    فشل كتابة الحدث لا يكسر المعالجة أبدًا.
+    سجلات مستوى المحاولة (OCR/extract) تبقى مسجّلًا فقط عمدًا —
+    حدث page_failed النهائي هو ما يظهر في الواجهة لتجنب صفوف مكررة.
+    """
+    if level == "exception":
+        logger.exception(msg, *args)
+    else:
+        logger.warning(msg, *args)
+    if db is None or conversion_id is None or kind is None:
+        return
+    try:
+        text = note if note is not None else (msg % args if args else msg)
+        record_event(db, conversion_id, kind, page_number=page_number, note=text)
+        db.flush()
+    except Exception:
+        logger.warning("could not mirror log to events for conversion %s", conversion_id)
+
+
 QUEUE_NAME = "conversions"
 _JOB_PATH = "app.domains.conversion.pipeline.process.process_conversion_job"
 MAX_ATTEMPTS = 3
@@ -87,6 +118,7 @@ def _extract_assets(
     page: Page,
     conversion_id: str,
     storage: Storage,
+    db: Session | None = None,
 ) -> list[Asset]:
     """Save embedded images referenced by the page and describe them (text path only)."""
     infos = pdf[page_number - 1].get_images(full=True)
@@ -98,7 +130,16 @@ def _extract_assets(
             index = int(block.payload.asset_id.rsplit("-img", 1)[1])
             pixmap = pymupdf.Pixmap(pdf, infos[index][0])
         except Exception:
-            logger.warning("skipping unreadable image %s", block.payload.asset_id)
+            _log_and_record(
+                db,
+                conversion_id,
+                "warning",
+                "skipping unreadable image %s",
+                block.payload.asset_id,
+                kind="asset_skipped",
+                note=f"skipping unreadable image {block.payload.asset_id}",
+                page_number=page_number,
+            )
             continue
         if pixmap.n > 4 or pixmap.alpha:
             pixmap = pymupdf.Pixmap(pymupdf.csRGB, pixmap)
@@ -191,9 +232,11 @@ def _process_page(
                     return page, True, None
         except OCRBlockedError as exc:
             note = f"ocr_refused:{exc}"
+            # مسجّل فقط عمدًا: حدث page_failed النهائي يحمل نفس الملاحظة للواجهة.
             logger.warning("page %d refused by OCR provider", page_number)
         except Exception as exc:
             note = f"{type(exc).__name__}:{exc}"[:200]
+            # مسجّل فقط عمدًا: حدث page_failed النهائي يحمل نفس الملاحظة للواجهة.
             logger.exception("page %d attempt %d failed", page_number, attempt + 1)
     return Page(number=page_number), False, note or "quality_rejected"
 
@@ -271,7 +314,7 @@ def process_conversion(
                         storage.load(f"{conversion_id}/pages/{page_number}.json")
                     )
                     all_assets.extend(
-                        _extract_assets(pdf_doc, page_number, saved, conversion_id, storage)
+                        _extract_assets(pdf_doc, page_number, saved, conversion_id, storage, db)
                     )
                 continue
             try:
@@ -295,6 +338,7 @@ def process_conversion(
                     f"{conversion_id}/pages/{page_number}.json", page.model_dump_json().encode()
                 )
             except Exception as exc:
+                # مسجّل + حدث page_failed أدناه يحمل نفس الملاحظة للواجهة.
                 logger.exception("page %d finalize failed, skipping", page_number)
                 page, accepted, note = (
                     Page(number=page_number),
@@ -308,10 +352,19 @@ def process_conversion(
                     and pdf_doc is not None
                 ):
                     all_assets.extend(
-                        _extract_assets(pdf_doc, page_number, page, conversion_id, storage)
+                        _extract_assets(pdf_doc, page_number, page, conversion_id, storage, db)
                     )
             except Exception:
-                logger.exception("page %d assets skipped", page_number)
+                _log_and_record(
+                    db,
+                    conversion_id,
+                    "exception",
+                    "page %d assets skipped",
+                    page_number,
+                    kind="asset_skipped",
+                    note=f"page {page_number} assets skipped",
+                    page_number=page_number,
+                )
             checkpoint.attempts = MAX_ATTEMPTS
             if accepted:
                 checkpoint.status = "done"
@@ -504,11 +557,11 @@ def cancel_conversion(db: Session, conversion_id: str) -> Conversion:
     row.status = ConversionStatus.CANCELLED.value
     record_event(db, conversion_id, "cancelled")
     db.commit()
-    _drop_queued_job(conversion_id)
+    _drop_queued_job(conversion_id, db)
     return _row_to_domain(row)
 
 
-def _drop_queued_job(conversion_id: str) -> None:
+def _drop_queued_job(conversion_id: str, db: Session | None = None) -> None:
     """Remove a still-queued RQ job for this conversion; the worker start-guard covers races."""
     try:
         queue = Queue(QUEUE_NAME, connection=get_redis())
@@ -517,7 +570,20 @@ def _drop_queued_job(conversion_id: str) -> None:
             if job is not None and job.args and str(job.args[0]) == conversion_id:
                 job.cancel()
     except Exception:
-        logger.warning("could not drop queued job for conversion %s", conversion_id)
+        _log_and_record(
+            db,
+            conversion_id,
+            "warning",
+            "could not drop queued job for conversion %s",
+            conversion_id,
+            kind="log_warning",
+            note="could not drop queued job",
+        )
+        if db is not None:
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
 
 
 def requeue_orphans(db: Session, stale_after_seconds: int = LEASE_SECONDS) -> int:
@@ -564,18 +630,35 @@ def enqueue_missing_jobs(db: Session, stale_after_seconds: int = LEASE_SECONDS) 
     )
     enqueued = 0
     for row in rows:
-        if row.id not in active and queue_conversion(row.id):
+        if row.id not in active and queue_conversion(row.id, db=db):
             enqueued += 1
     return enqueued
 
 
-def queue_conversion(conversion_id: str, settings: Settings | None = None) -> bool:
+def queue_conversion(
+    conversion_id: str,
+    settings: Settings | None = None,
+    db: Session | None = None,
+) -> bool:
     """Push the job to Redis; return False (stay queued) when unavailable."""
     try:
         Queue(QUEUE_NAME, connection=get_redis(settings)).enqueue(_JOB_PATH, conversion_id)
         return True
     except Exception:
-        logger.warning("queue unavailable; conversion %s stays queued", conversion_id)
+        _log_and_record(
+            db,
+            conversion_id,
+            "warning",
+            "queue unavailable; conversion %s stays queued",
+            conversion_id,
+            kind="queue_unavailable",
+            note="queue unavailable; stays queued",
+        )
+        if db is not None:
+            try:
+                db.commit()
+            except Exception:
+                db.rollback()
         return False
 
 

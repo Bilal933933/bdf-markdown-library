@@ -211,6 +211,19 @@ def test_queue_returns_false_without_redis() -> None:
     assert queue_conversion("nope", Settings(redis_url=None)) is False
 
 
+def test_queue_unavailable_is_mirrored_to_events(tmp_path: Path) -> None:
+    """تحذير الطابور يبقى في المسجّل ويظهر كحدث في الواجهة."""
+    from app.domains.conversion.services.conversions import list_events
+
+    conversion_id, db, _storage = make_conversion(build_blank_pdf(), tmp_path)
+    try:
+        assert queue_conversion(conversion_id, Settings(redis_url=None), db=db) is False
+        kinds = [e.kind for e in list_events(db, conversion_id)]
+        assert "queue_unavailable" in kinds
+    finally:
+        cleanup(db, conversion_id)
+
+
 def build_docx_bytes() -> bytes:
     import io
 

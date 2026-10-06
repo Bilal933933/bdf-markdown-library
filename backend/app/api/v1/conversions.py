@@ -47,7 +47,7 @@ async def enqueue_conversion(
 ) -> SuccessEnvelope[Conversion]:
     data = await file.read()
     conversion = create_conversion(db, storage, file.filename or "upload.pdf", data, settings)
-    queue_conversion(conversion.id)
+    queue_conversion(conversion.id, db=db)
     return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
 
 
@@ -81,7 +81,7 @@ def retry_conversion(
     conversion_id: str, db: Annotated[Session, Depends(get_db)]
 ) -> SuccessEnvelope[Conversion]:
     conversion = requeue_conversion(db, conversion_id)
-    queue_conversion(conversion.id)
+    queue_conversion(conversion.id, db=db)
     return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
 
 
@@ -106,7 +106,7 @@ def resume(
     conversion_id: str, db: Annotated[Session, Depends(get_db)]
 ) -> SuccessEnvelope[Conversion]:
     conversion = resume_conversion(db, conversion_id)
-    queue_conversion(conversion.id)
+    queue_conversion(conversion.id, db=db)
     return SuccessEnvelope(data=conversion, meta=Meta(request_id=get_request_id()))
 
 
