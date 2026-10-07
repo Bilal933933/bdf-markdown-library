@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 $env:PYTHONDONTWRITEBYTECODE = "1"
 
-$backend = Join-Path $PSScriptRoot "backend"
+$backend = $PSScriptRoot
 if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
     throw "uv is required. Install it from https://docs.astral.sh/uv/"
 }

@@ -12,7 +12,7 @@ uv sync --locked
 uv run uvicorn app.main:app --reload
 ```
 
-من جذر المشروع، شغّل `./validate.ps1` للتحقق الكامل من الباك.
+من مجلد `backend/`، شغّل `./validate.ps1` للتحقق الكامل من الباك.
 
 ## هيكل الاختبارات
 

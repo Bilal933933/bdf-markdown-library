@@ -38,10 +38,23 @@ def build_pdf() -> bytes:
     return doc.tobytes()
 
 
+def _server_major() -> int:
+    """Major version of the local Redis server (0 when unreachable)."""
+    from app.infrastructure.redis import get_redis
+
+    try:
+        version = str(get_redis().info("server").get("redis_version", "0"))
+        return int(version.split(".")[0])
+    except Exception:
+        return 0
+
+
 @pytest.fixture()
 def live_queue(monkeypatch: pytest.MonkeyPatch) -> Queue:
     if not ping():
         pytest.skip("Redis not running")
+    if _server_major() < 4:
+        pytest.skip("Redis >= 4 required (RQ uses multi-field HSET)")
     reset_redis()
     import redis
 

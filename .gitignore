@@ -1,12 +1,6 @@
 node_modules/
-_ocr/node_modules/
-_ocr/tessdata/
 *.png
-_ocr/*.txt
-_ocr/tmp-*
-_ocr/tmp*
 *.pdf
-_ocr/*.log
 .env
 backend/.env
 logs/

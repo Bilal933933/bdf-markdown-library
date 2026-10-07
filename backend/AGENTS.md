@@ -63,7 +63,7 @@ uv run ruff check app tests   # lint
 uv run ruff format app tests  # format
 uv run mypy app               # types
 uv run uvicorn app.main:app --port 8123   # تشغيل (8123: لأن 8000 محجوز)
-.\validate.ps1                # من الجذر: sync + pytest + format-check + lint + mypy
+.\validate.ps1                # من backend/: sync + pytest + format-check + lint + mypy
 ```
 
 ## 5. العقود الثابتة
